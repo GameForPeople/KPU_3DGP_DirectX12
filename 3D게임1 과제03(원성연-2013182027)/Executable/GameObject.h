@@ -37,7 +37,14 @@ public:
 
 class CGameObject
 {
+private:
+	int m_nReferences = 0;
+
 public:
+	CGameObject();
+	CGameObject(int nMeshes = 1);
+	virtual ~CGameObject();
+
 	//게임 객체가 카메라에 보인는 가를 검사한다.
 	bool IsVisible(CCamera *pCamera = NULL);
 	bool IsVisible(CCamera *pCamera, bool a);
@@ -45,23 +52,17 @@ public:
 	XMFLOAT3 m_dirVector{ 0, 0, 0 };
 	float m_fRotationSpeed;
 	int m_isStatus = 0;
-
-public:
-	CGameObject();
-	CGameObject(int nMeshes = 1);
-	virtual ~CGameObject();
-
-private:
-	int m_nReferences = 0;
 public:
 	int m_nMeshes = 0;
 
 	void AddRef() { m_nReferences++; }
 	void Release() { if (--m_nReferences <= 0) delete this; }
 	XMFLOAT4X4 m_xmf4x4World;
-protected:
-	CMesh **m_ppMeshes = NULL;
-	CShader *m_pShader = NULL;
+	CMesh							**m_ppMeshes = NULL;
+	CShader							*m_pShader = NULL;
+
+	CMaterial						*m_pMaterial = NULL;
+
 public:
 	void ReleaseUploadBuffers();
 	virtual void SetMesh(int nIndex, CMesh *pMesh);
@@ -70,7 +71,6 @@ public:
 	virtual void OnPrepareRender();
 	virtual void Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera);
 
-public:
 	//상수 버퍼를 생성한다.
 	virtual void CreateShaderVariables(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList
 		*pd3dCommandList);
@@ -95,7 +95,6 @@ public:
 	//게임 객체를 회전(x-축, y-축, z-축)한다.
 	void Rotate(float fPitch = 10.0f, float fYaw = 10.0f, float fRoll = 10.0f);
 
-
 	BoundingOrientedBox		m_xmOOBB;
 	BoundingOrientedBox		m_xmOOBBTransformed;
 	void SetOOBB(XMFLOAT3& xmCenter, XMFLOAT3& xmExtents, XMFLOAT4& xmOrientation) { m_xmOOBBTransformed = m_xmOOBB = BoundingOrientedBox(xmCenter, xmExtents, xmOrientation); }
@@ -111,8 +110,8 @@ public:
 	virtual ~CRotatingObject();
 private:
 	XMFLOAT3 m_xmf3RotationAxis;
-public:
 
+public:
 	void SetRotationSpeed(float fRotationSpeed) { m_fRotationSpeed = fRotationSpeed; }
 	void SetRotationAxis(XMFLOAT3 xmf3RotationAxis) {
 		m_xmf3RotationAxis =
