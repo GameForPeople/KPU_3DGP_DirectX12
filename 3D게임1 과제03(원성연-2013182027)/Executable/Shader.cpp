@@ -432,20 +432,23 @@ void CObjectsShader::BuildWallObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCo
 
 	//직육면체를 지형 표면에 그리고 지형보다 높은 위치에 일정한 간격으로 배치한다.
 
-	float x_len = 10.0f;
+	float x_len = 20.0f;
 	float xPosition{ 0 };
 	float zPosition{ 0 };
 	float fHeight{ 0 };
-	m_nObjects = 137;
+	m_nObjects = 100;//92;
 	m_ppObjects = new CGameObject*[m_nObjects];
 	CWallMeshDiffused *pWallMesh1 = new CWallMeshDiffused(pd3dDevice, pd3dCommandList,
-		10.0f, 30.0f, 1.0f, 1);
+		20.0f, 150.0f, 1.0f, 1);
 	CWallMeshDiffused *pWallMesh2 = new CWallMeshDiffused(pd3dDevice, pd3dCommandList,
-		10.0f, 30.0f, 1.0f, 2);
+		20.0f, 150.0f, 1.0f, 2);
 	CGameObject *pGameObject = NULL;
 
 	for (int j = 0; j < m_nObjects; j++) {
+		
 		pGameObject = new CGameObject(1);
+
+		/*
 		if (j >= 0 && j < 5) {
 			pGameObject->SetMesh(0, pWallMesh1);
 			xPosition = 800 - ((float)5 / (float)2 * x_len) + x_len * j + x_len / 2;
@@ -555,118 +558,30 @@ void CObjectsShader::BuildWallObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCo
 				xPosition = 885;
 				zPosition = 795 + (j - 88) * x_len;
 			}
-		}
-		else if (j >= 102 && j < 108) {
-			pGameObject->SetMesh(0, pWallMesh1);
-			if (j < 104) {
-				xPosition = 910 + (j - 102) * x_len;
-				zPosition = 890;
-			}
-			else if (j < 106) {
-				xPosition = 910 + (j - 104) * x_len;
-				zPosition = 910;
-			}
-			else if (j < 108) {
-				xPosition = 890 + (j - 106) * x_len;
-				zPosition = 930;
-			}
-		}
-		else if (j >= 108 && j < 137) {
-			pGameObject->SetMesh(0, pWallMesh1);
-			if (j < 125) {
-				if (j < 111) {
-					xPosition = 880 - (j - 108) * x_len;
-					zPosition = 890;
-				}
-				else if (j < 112) {
-					xPosition = 860 - (j - 108) * x_len;
-					zPosition = 890;
-				}
-				else if (j < 113) {
-					xPosition = 840 - (j - 108) * x_len;
-					zPosition = 890;
-				}
-				else if (j < 114) {
-					xPosition = 820 - (j - 108) * x_len;
-					zPosition = 890;
-				}
-				else if (j < 115) {
-					xPosition = 800 - (j - 108) * x_len;
-					zPosition = 890;
-				}
-				else if (j < 116) {
-					xPosition = 780 - (j - 108) * x_len;
-					zPosition = 890;
-				}
-				else if (j < 117) {
-					xPosition = 760 - (j - 108) * x_len;
-					zPosition = 890;
-				}
-				else if (j < 118) {
-					xPosition = 740 - (j - 108) * x_len;
-					zPosition = 890;
-				}
-				else if (j < 119) {
-					xPosition = 720 - (j - 108) * x_len;
-					zPosition = 890;
-				}
-				else if (j < 125) {
-					xPosition = 700 - (j - 108) * x_len;
-					zPosition = 890;
-				}
-			}
-			else if (j < 137) {
-				if (j < 128) {
-					xPosition = 880 - (j - 125) * x_len;
-					zPosition = 910;
-				}
-				else if (j < 129) {
-					xPosition = 860 - (j - 125) * x_len;
-					zPosition = 910;
-				}
-				else if (j < 130) {
-					xPosition = 840 - (j - 125) * x_len;
-					zPosition = 910;
-				}
-				else if (j < 131) {
-					xPosition = 820 - (j - 125) * x_len;
-					zPosition = 910;
-				}
-				else if (j < 132) {
-					xPosition = 800 - (j - 125) * x_len;
-					zPosition = 910;
-				}
-				else if (j < 133) {
-					xPosition = 780 - (j - 125) * x_len;
-					zPosition = 910;
-				}
-				else if (j < 134) {
-					xPosition = 760 - (j - 125) * x_len;
-					zPosition = 910;
-				}
-				else if (j < 135) {
-					xPosition = 740 - (j - 125) * x_len;
-					zPosition = 910;
-				}
-				else if (j < 136) {
-					xPosition = 720 - (j - 125) * x_len;
-					zPosition = 910;
-				}
-				else if (j < 137) {
-					xPosition = 700 - (j - 125) * x_len;
-					zPosition = 910;
-				}
-			}
-		}
-		/*else if (j >= 138 && j < 140) {
-		pGameObject->SetMesh(0, pWallMesh2);
-		if (j < 140) {
-		xPosition = 830;
-		zPosition = 890 - (j - 140) * x_len ;
-		}
 		}*/
-		
-
+		if (j < 25) {
+			pGameObject->SetMesh(0, pWallMesh1);
+			xPosition = 800 - x_len * j;
+			zPosition = 900;
+		}
+		else if (j < 50) {
+			int h = j - 25;
+			pGameObject->SetMesh(0, pWallMesh1);
+			xPosition = 800 - x_len * h;
+			zPosition = 600;
+		}
+		else if (j < 75) {
+			int h = j - 50;
+			pGameObject->SetMesh(0, pWallMesh2);
+			xPosition = 800 - ((float)5 / (float)2 * x_len) + x_len * h + x_len / 2;
+			zPosition = 1880;
+		}
+		else if (j < 100) {
+			int h = j - 50;
+			pGameObject->SetMesh(0, pWallMesh2);
+			xPosition = 800 - ((float)5 / (float)2 * x_len) + x_len * h + x_len / 2;
+			zPosition = 1880;
+		}
 		fHeight = pTerrain->GetHeight(xPosition, zPosition);
 		pGameObject->SetPosition(xPosition, pTerrain->GetHeight(xPosition, zPosition) + 6.0f, zPosition);
 

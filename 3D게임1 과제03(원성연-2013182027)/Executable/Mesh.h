@@ -12,6 +12,7 @@ public:
 	CVertex(XMFLOAT3 xmf3Position) { m_xmf3Position = xmf3Position; }
 	~CVertex() { }
 };
+
 class CDiffusedVertex : public CVertex {
 protected:
 	//정점의 색상이다.  
@@ -32,13 +33,27 @@ public:
 	~CDiffusedVertex() { }
 };
 
+class CIlluminatedVertex : public CVertex
+{
+protected:
+	XMFLOAT3						m_xmf3Normal;
+
+public:
+	CIlluminatedVertex() { m_xmf3Position = XMFLOAT3(0.0f, 0.0f, 0.0f); m_xmf3Normal = XMFLOAT3(0.0f, 0.0f, 0.0f); }
+	CIlluminatedVertex(float x, float y, float z, XMFLOAT3 xmf3Normal = XMFLOAT3(0.0f, 0.0f, 0.0f)) { m_xmf3Position = XMFLOAT3(x, y, z); m_xmf3Normal = xmf3Normal; }
+	CIlluminatedVertex(XMFLOAT3 xmf3Position, XMFLOAT3 xmf3Normal = XMFLOAT3(0.0f, 0.0f, 0.0f)) { m_xmf3Position = xmf3Position; m_xmf3Normal = xmf3Normal; }
+	~CIlluminatedVertex() { }
+};
+
+/////////////////////////////////////////////////////////////////////////////
+
 class CMesh
 {
 public:
 	CMesh(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList);
 	virtual ~CMesh();
 private:
-	int m_nReferences = 0;
+	int						m_nReferences = 0;
 public:
 	void AddRef() { m_nReferences++; }
 	void Release() {
@@ -46,14 +61,23 @@ public:
 	}
 	void ReleaseUploadBuffers();
 protected:
-	ID3D12Resource *m_pd3dVertexBuffer = NULL;
-	ID3D12Resource *m_pd3dVertexUploadBuffer = NULL;
-	D3D12_VERTEX_BUFFER_VIEW m_d3dVertexBufferView;
-	D3D12_PRIMITIVE_TOPOLOGY m_d3dPrimitiveTopology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-	UINT m_nSlot = 0;
-	UINT m_nVertices = 0;
-	UINT m_nStride = 0;
-	UINT m_nOffset = 0;
+	ID3D12Resource					*m_pd3dVertexBuffer = NULL;
+	ID3D12Resource					*m_pd3dVertexUploadBuffer = NULL;
+
+	ID3D12Resource					*m_pd3dIndexBuffer = NULL;
+	ID3D12Resource					*m_pd3dIndexUploadBuffer = NULL;
+	/*인덱스 버퍼(인덱스의 배열)와 인덱스 버퍼를 위한 업로드 버퍼에 대한 인터페이스 포인터이다. 인덱스 버퍼는 정점
+	버퍼(배열)에 대한 인덱스를 가진다.*/
+
+	D3D12_VERTEX_BUFFER_VIEW		m_d3dVertexBufferView;
+	D3D12_INDEX_BUFFER_VIEW			m_d3dIndexBufferView;
+
+	D3D12_PRIMITIVE_TOPOLOGY		m_d3dPrimitiveTopology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+	
+	UINT							m_nSlot = 0;
+	UINT							m_nVertices = 0;
+	UINT							m_nStride = 0;
+	UINT							m_nOffset = 0;
 
 protected:
 	//정점을 픽킹을 위하여 저장한다(정점 버퍼를 Map()하여 읽지 않아도 되도록).
@@ -66,11 +90,10 @@ protected:
 	BoundingOrientedBox m_xmBoundingBox;
 
 protected:
-	ID3D12Resource *m_pd3dIndexBuffer = NULL;
-	ID3D12Resource *m_pd3dIndexUploadBuffer = NULL;
-	/*인덱스 버퍼(인덱스의 배열)와 인덱스 버퍼를 위한 업로드 버퍼에 대한 인터페이스 포인터이다. 인덱스 버퍼는 정점
-	버퍼(배열)에 대한 인덱스를 가진다.*/
-	D3D12_INDEX_BUFFER_VIEW m_d3dIndexBufferView;
+	//ID3D12Resource *m_pd3dIndexBuffer = NULL;
+	//ID3D12Resource *m_pd3dIndexUploadBuffer = NULL;
+	
+	//D3D12_INDEX_BUFFER_VIEW m_d3dIndexBufferView;
 	UINT m_nIndices = 0;
 	//인덱스 버퍼에 포함되는 인덱스의 개수이다.
 	UINT m_nStartIndex = 0;
