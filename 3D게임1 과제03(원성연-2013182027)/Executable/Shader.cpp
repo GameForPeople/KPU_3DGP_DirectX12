@@ -432,21 +432,23 @@ void CObjectsShader::BuildWallObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCo
 
 	//직육면체를 지형 표면에 그리고 지형보다 높은 위치에 일정한 간격으로 배치한다.
 
-	float x_len = 20.0f;
+	float x_len = 15.0f;
 	float xPosition{ 0 };
 	float zPosition{ 0 };
 	float fHeight{ 0 };
-	m_nObjects = 100;//92;
+	m_nObjects = 100;	//92;
 	m_ppObjects = new CGameObject*[m_nObjects];
-	CWallMeshDiffused *pWallMesh1 = new CWallMeshDiffused(pd3dDevice, pd3dCommandList,
-		20.0f, 150.0f, 1.0f, 1);
-	CWallMeshDiffused *pWallMesh2 = new CWallMeshDiffused(pd3dDevice, pd3dCommandList,
-		20.0f, 150.0f, 1.0f, 2);
+	CWallMeshDiffused *pWallMesh1 = new CWallMeshDiffused(pd3dDevice, pd3dCommandList,x_len, 150.0f, 1.0f, 1);
+	CWallMeshDiffused *pWallMesh2 = new CWallMeshDiffused(pd3dDevice, pd3dCommandList,x_len, 150.0f, 1.0f, 2);
+	CWallMeshDiffused *pWallMesh3 = new CWallMeshDiffused(pd3dDevice, pd3dCommandList,100.0f, 1.0f, 100.0f, 1);
+
 	CGameObject *pGameObject = NULL;
 
 	for (int j = 0; j < m_nObjects; j++) {
 		
 		pGameObject = new CGameObject(1);
+
+		int vUpObject = 0;
 
 		/*
 		if (j >= 0 && j < 5) {
@@ -559,31 +561,63 @@ void CObjectsShader::BuildWallObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCo
 				zPosition = 795 + (j - 88) * x_len;
 			}
 		}*/
-		if (j < 25) {
+		if (j < 20) {
 			pGameObject->SetMesh(0, pWallMesh1);
-			xPosition = 800 - x_len * j;
-			zPosition = 900;
+			xPosition = 800 - x_len * (j - 9.5f);
+			zPosition = 950;	//200차이가 나야함
 		}
-		else if (j < 50) {
-			int h = j - 25;
+		else if (j < 40) {
+			int h = j - 20;
 			pGameObject->SetMesh(0, pWallMesh1);
-			xPosition = 800 - x_len * h;
-			zPosition = 600;
+			xPosition = 800 - x_len * (h - 9.5f);
+			zPosition = 650;
 		}
-		else if (j < 75) {
-			int h = j - 50;
+		else if (j < 60) {
+			int h = j - 40;
 			pGameObject->SetMesh(0, pWallMesh2);
-			xPosition = 800 - ((float)5 / (float)2 * x_len) + x_len * h + x_len / 2;
-			zPosition = 1880;
+			xPosition = 950;
+			zPosition = 800 - x_len * (h - 9.5f);
+		}
+		else if (j < 80) {
+			int h = j - 60;
+			pGameObject->SetMesh(0, pWallMesh2);
+			xPosition = 650;
+			zPosition = 800 - x_len * (h - 9.5f);
+		}
+		else if (j < 90) {
+			int h = (j - 80);
+			vUpObject = h / 3; 
+			h = h % 3;
+			// 0 0, 1 0, 2 0, 0 1, 1 1, 2 1, 0 2, 1 2, 2 2
+
+			pGameObject->SetMesh(0, pWallMesh3);
+			xPosition = 700 + 100 * h;
+			zPosition = 700 + 100 * vUpObject;
+
+			if (j == 89) {
+				zPosition = -1000;
+			}
 		}
 		else if (j < 100) {
-			int h = j - 50;
-			pGameObject->SetMesh(0, pWallMesh2);
-			xPosition = 800 - ((float)5 / (float)2 * x_len) + x_len * h + x_len / 2;
-			zPosition = 1880;
+			int h = (j - 90);
+			vUpObject = h / 3;
+			h = h % 3;
+
+			pGameObject->SetMesh(0, pWallMesh3);
+			xPosition = 700 + 100 * h;
+			zPosition = 700 + 100 * vUpObject;
+
+			if (j == 99) {
+				zPosition = -1000;
+			}
 		}
-		fHeight = pTerrain->GetHeight(xPosition, zPosition);
-		pGameObject->SetPosition(xPosition, pTerrain->GetHeight(xPosition, zPosition) + 6.0f, zPosition);
+		//fHeight = pTerrain->GetHeight(xPosition, zPosition);
+		if(j < 80)
+			pGameObject->SetPosition(xPosition, pTerrain->GetHeight(xPosition, zPosition) + 6.0f, zPosition);
+		else if (j < 90)
+			pGameObject->SetPosition(xPosition, pTerrain->GetHeight(xPosition, zPosition) + 56.0f, zPosition);
+		else
+			pGameObject->SetPosition(xPosition, pTerrain->GetHeight(xPosition, zPosition) + 1.0f, zPosition);
 
 		/*
 		if (y == 0)
