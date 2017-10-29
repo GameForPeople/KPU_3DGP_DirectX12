@@ -48,7 +48,7 @@ public:
 	virtual void ReleaseShaderVariables();
 
 	bool ProcessInput(UCHAR *pKeysBuffer);
-	void AnimateObjects(float fTimeElapsed, CPlayer& player);
+	void AnimateObjects(float fTimeElapsed, CPlayer& player, bool& m_isOnInput);
 	void Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera);
 	void ReleaseUploadBuffers();
 

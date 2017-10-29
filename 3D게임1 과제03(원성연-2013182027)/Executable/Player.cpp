@@ -5,7 +5,8 @@
 CPlayer::CPlayer(int nMeshes) : CGameObject(nMeshes)
 {
 
-	SetOOBB(XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(3.0f, 5.0f, 3.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+//	SetOOBB(XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(3.0f, 5.0f, 3.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+	m_ColidePoint.Create(10, 0.0f, 0.0f);
 
 	m_pCamera = NULL;
 	m_xmf3Position = XMFLOAT3(0.0f, 0.0f, 0.0f);
@@ -170,6 +171,10 @@ void CPlayer::Rotate(float x, float y, float z)
 //이 함수는 매 프레임마다 호출된다. 플레이어의 속도 벡터에 중력과 마찰력 등을 적용한다.
 void CPlayer::Update(float fTimeElapsed)
 {
+	m_ColidePoint.Animate(GetPosition().x, GetPosition().z);
+
+	#pragma region [Old Code]
+
 	/*플레이어의 속도 벡터를 중력 벡터와 더한다. 중력 벡터에 fTimeElapsed를 곱하는 것은 중력을 시간에 비례하도록
 	적용한다는 의미이다.*/
 	m_xmf3Velocity = Vector3::Add(m_xmf3Velocity, Vector3::ScalarProduct(m_xmf3Gravity,
@@ -215,7 +220,7 @@ void CPlayer::Update(float fTimeElapsed)
 	m_xmf3Velocity = Vector3::Add(m_xmf3Velocity, Vector3::ScalarProduct(m_xmf3Velocity,
 		-fDeceleration, true));
 
-
+#pragma endregion
 }
 
 /*카메라를 변경할 때 ChangeCamera() 함수에서 호출되는 함수이다. nCurrentCameraMode는 현재 카메라의 모드

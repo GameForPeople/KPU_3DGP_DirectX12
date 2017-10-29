@@ -12,6 +12,47 @@ struct MATERIAL
 	XMFLOAT4						m_xmf4Emissive;
 };
 
+struct ColidePoint {
+	struct Pos2D {
+		float x;
+		float z;
+	};
+	float	size;
+
+	Pos2D	mXmZ;	// mi X, mi Z
+	Pos2D	pXpZ;	// pl X, pl Z
+	//Pos2D	mXpZ;	// mi x, pl Z
+	//Pos2D	pXmZ;	// pl X, mi Z
+
+	void Create(float size, float x, float z) {
+		this->size = size;
+		Animate(x, z);
+	}
+
+	void Animate(float x, float z) {
+		mXmZ.x = x - size;
+		mXmZ.z = z - size;
+
+		//mXpZ.x = x - size;
+		//mXpZ.z = z + size;
+
+		pXpZ.x = x + size;
+		pXpZ.z = z + size;
+
+		//pXmZ.x = x + size;
+		//pXmZ.z = z - size;
+	}
+
+	bool SayHello(ColidePoint inputColidePoint) {
+		if (mXmZ.x > inputColidePoint.pXpZ.x) return false;
+		else if (mXmZ.z > inputColidePoint.pXpZ.z) return false;
+		else if (pXpZ.x < inputColidePoint.mXmZ.x) return false;
+		else if (pXpZ.z < inputColidePoint.mXmZ.z) return false;
+
+		return true;
+	}
+};
+
 class CMaterial
 {
 public:
@@ -60,6 +101,8 @@ public:
 	XMFLOAT4X4 m_xmf4x4World;
 	CMesh							**m_ppMeshes = NULL;
 	CShader							*m_pShader = NULL;
+	
+	ColidePoint						m_ColidePoint;
 
 	CMaterial						*m_pMaterial = NULL;
 
@@ -67,7 +110,7 @@ public:
 	void ReleaseUploadBuffers();
 	virtual void SetMesh(int nIndex, CMesh *pMesh);
 	virtual void SetShader(CShader *pShader);
-	virtual void Animate(float fTimeElapsed);
+	virtual void Animate(float fTimeElapsed, void *pContext);
 	virtual void OnPrepareRender();
 	virtual void Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera);
 
@@ -78,6 +121,9 @@ public:
 	virtual void UpdateShaderVariables(ID3D12GraphicsCommandList *pd3dCommandList);
 	virtual void ReleaseShaderVariables();
 	
+	virtual void DoColide(float playerX, float playerZ) {};
+	virtual void DoColide(float playerX, float playerZ, bool m_isOnInput) {};
+
 	//게임 객체의 월드 변환 행렬에서 위치 벡터와 방향(x-축, y-축, z-축) 벡터를 반환한다.
 	XMFLOAT3 GetPosition();
 	XMFLOAT3 GetLook();
@@ -95,9 +141,9 @@ public:
 	//게임 객체를 회전(x-축, y-축, z-축)한다.
 	void Rotate(float fPitch = 10.0f, float fYaw = 10.0f, float fRoll = 10.0f);
 
-	BoundingOrientedBox		m_xmOOBB;
-	BoundingOrientedBox		m_xmOOBBTransformed;
-	void SetOOBB(XMFLOAT3& xmCenter, XMFLOAT3& xmExtents, XMFLOAT4& xmOrientation) { m_xmOOBBTransformed = m_xmOOBB = BoundingOrientedBox(xmCenter, xmExtents, xmOrientation); }
+	//BoundingOrientedBox		m_xmOOBB;
+	//BoundingOrientedBox		m_xmOOBBTransformed;
+	//void SetOOBB(XMFLOAT3& xmCenter, XMFLOAT3& xmExtents, XMFLOAT4& xmOrientation) { m_xmOOBBTransformed = m_xmOOBB = BoundingOrientedBox(xmCenter, xmExtents, xmOrientation); }
 
 	void Rotate(XMFLOAT3 *pxmf3Axis, float fAngle);
 };
@@ -110,14 +156,18 @@ public:
 	virtual ~CRotatingObject();
 private:
 	XMFLOAT3 m_xmf3RotationAxis;
-
 public:
 	void SetRotationSpeed(float fRotationSpeed) { m_fRotationSpeed = fRotationSpeed; }
 	void SetRotationAxis(XMFLOAT3 xmf3RotationAxis) {
 		m_xmf3RotationAxis =
 			xmf3RotationAxis;
 	}
-	virtual void Animate(float fTimeElapsed);
+	virtual void Animate(float fTimeElapsed, void *pContext);
+	void LimitMove(float fTimeElapsed);
+	
+	virtual void DoColide(float playerX, float playerZ);
+	virtual void DoColide(float playerX, float playerZ, bool& m_isOnInput);
+
 };
 
 class CHeightMapTerrain : public CGameObject

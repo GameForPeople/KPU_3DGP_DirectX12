@@ -26,6 +26,9 @@ public:
 	D3D12_SHADER_BYTECODE CompileShaderFromFile(WCHAR *pszFileName, LPCSTR pszShaderName,LPCSTR pszShaderProfile, ID3DBlob **ppd3dShaderBlob);
 	D3D12_SHADER_BYTECODE ReadCompiledShaderFromFile(WCHAR *pszFileName, ID3DBlob **ppd3dShaderBlob = NULL);
 
+	virtual void DoColide(float playerX, float playerZ) {};
+	virtual void DoColide(float playerX, float playerZ, bool m_isOnInput) {};
+
 
 	virtual void CreateShader(ID3D12Device *pd3dDevice, ID3D12RootSignature *pd3dGraphicsRootSignature);
 	
@@ -91,7 +94,7 @@ public:
 
 	virtual void BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList
 		*pd3dCommandList, void *pContext);
-	virtual void AnimateObjects(float fTimeElapsed);
+	virtual void AnimateObjects(float fTimeElapsed, void *pContext);
 	virtual void ReleaseObjects();
 
 	virtual D3D12_INPUT_LAYOUT_DESC CreateInputLayout();
@@ -104,11 +107,16 @@ public:
 	virtual void UpdateShaderVariables(ID3D12GraphicsCommandList *pd3dCommandList);
 	virtual void ReleaseShaderVariables();
 
+	virtual void DoColide(float playerX, float playerZ);
+	virtual void DoColide(float playerX, float playerZ, bool& m_isOnInput);
+
+
 	virtual void ReleaseUploadBuffers();
 	virtual void Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera);
 	virtual void BuildWallObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, void *pContext);
 	virtual void BuildBallObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, void *pContext);
 
+	
 public:
 	CGameObject **m_ppObjects = NULL;
 	int m_nObjects = 0;

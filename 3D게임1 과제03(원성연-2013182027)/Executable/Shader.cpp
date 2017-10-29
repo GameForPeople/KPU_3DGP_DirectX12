@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "Shader.h"
 
+#pragma region [CShader Part.]
 
 CShader::CShader()
 {
@@ -164,6 +165,8 @@ D3D12_SHADER_BYTECODE CShader::ReadCompiledShaderFromFile(WCHAR *pszFileName, ID
 
 //그래픽스 파이프라인 상태 객체를 생성한다.
 //그래픽스 파이프라인 상태 객체를 생성한다.
+
+
 void CShader::CreateShader(ID3D12Device *pd3dDevice, ID3D12RootSignature *pd3dGraphicsRootSignature)
 {
 	ID3DBlob *pd3dVertexShaderBlob = NULL, *pd3dPixelShaderBlob = NULL;
@@ -221,6 +224,10 @@ void CShader::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamer
 {
 	OnPrepareRender(pd3dCommandList);
 }
+
+#pragma endregion
+
+#pragma region [CPlayerShader Part.]
 
 CPlayerShader::CPlayerShader()
 {
@@ -299,6 +306,9 @@ void CPlayerShader::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *
 }
 */
 
+#pragma endregion
+
+#pragma region [CObjectShader Part.]
 
 CObjectsShader::CObjectsShader()
 {
@@ -373,6 +383,8 @@ void CObjectsShader::ReleaseShaderVariables()
 }
 
 
+// Build Object
+
 void CObjectsShader::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList
 	*pd3dCommandList, void *pContext)
 {
@@ -384,6 +396,7 @@ void CObjectsShader::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsComman
 	//직육면체를 지형 표면에 그리고 지형보다 높은 위치에 일정한 간격으로 배치한다.
 	int xObjects = int(fTerrainWidth / fxPitch), yObjects = 2, zObjects =
 		int(fTerrainLength / fzPitch);
+
 	m_nObjects = xObjects * yObjects * zObjects;
 	m_ppObjects = new CGameObject*[m_nObjects];
 	CCubeMeshDiffused *pCubeMesh = new CCubeMeshDiffused(pd3dDevice, pd3dCommandList,
@@ -440,7 +453,7 @@ void CObjectsShader::BuildWallObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCo
 	m_ppObjects = new CGameObject*[m_nObjects];
 	CWallMeshDiffused *pWallMesh1 = new CWallMeshDiffused(pd3dDevice, pd3dCommandList,x_len, 150.0f, 1.0f, 1);
 	CWallMeshDiffused *pWallMesh2 = new CWallMeshDiffused(pd3dDevice, pd3dCommandList,x_len, 150.0f, 1.0f, 2);
-	CWallMeshDiffused *pWallMesh3 = new CWallMeshDiffused(pd3dDevice, pd3dCommandList,100.0f, 1.0f, 100.0f, 1);
+	CWallMeshDiffused *pWallMesh3 = new CWallMeshDiffused(pd3dDevice, pd3dCommandList,100.0f, 1.0f, 100.0f, 1);	//이놈이 아래 바닥 할꺼야
 
 	CGameObject *pGameObject = NULL;
 
@@ -561,10 +574,11 @@ void CObjectsShader::BuildWallObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCo
 				zPosition = 795 + (j - 88) * x_len;
 			}
 		}*/
+
 		if (j < 20) {
 			pGameObject->SetMesh(0, pWallMesh1);
 			xPosition = 800 - x_len * (j - 9.5f);
-			zPosition = 950;	//200차이가 나야함
+			zPosition = 950;	//200차이가 나야함 오그래?? 오~~~
 		}
 		else if (j < 40) {
 			int h = j - 20;
@@ -611,13 +625,14 @@ void CObjectsShader::BuildWallObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCo
 				zPosition = -1000;
 			}
 		}
+
 		//fHeight = pTerrain->GetHeight(xPosition, zPosition);
 		if(j < 80)
 			pGameObject->SetPosition(xPosition, pTerrain->GetHeight(xPosition, zPosition) + 6.0f, zPosition);
 		else if (j < 90)
-			pGameObject->SetPosition(xPosition, pTerrain->GetHeight(xPosition, zPosition) + 56.0f, zPosition);
+			pGameObject->SetPosition(xPosition, pTerrain->GetHeight(xPosition, zPosition) + 80.0f, zPosition);
 		else
-			pGameObject->SetPosition(xPosition, pTerrain->GetHeight(xPosition, zPosition) + 1.0f, zPosition);
+			pGameObject->SetPosition(xPosition, pTerrain->GetHeight(xPosition, zPosition), zPosition);
 
 		/*
 		if (y == 0)
@@ -634,7 +649,7 @@ void CObjectsShader::BuildWallObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCo
 		}
 		*/
 		m_ppObjects[j] = pGameObject;
-		m_ppObjects[j]->SetOOBB(XMFLOAT3(xPosition, 0.0f, zPosition), XMFLOAT3(5.0f, 30.0f, 0.5f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+//		m_ppObjects[j]->SetOOBB(XMFLOAT3(xPosition, 0.0f, zPosition), XMFLOAT3(5.0f, 30.0f, 0.5f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
 	}
 	CreateShaderVariables(pd3dDevice, pd3dCommandList);
 }
@@ -644,14 +659,14 @@ void CObjectsShader::BuildBallObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCo
 {
 	CHeightMapTerrain *pTerrain = (CHeightMapTerrain *)pContext;
 
-	//직육면체를 지형 표면에 그리고 지형보다 높은 위치에 일정한 간격으로 배치한다.
+	// 공친구들을 지형 표면에 그리고 지형보다 높은 위치에 배치한다.
 
 	float x_len = 10.0f;
 
 	float xPosition{ 0 };
 	float zPosition{ 0 };
 	float fHeight{ 0 };
-	m_nObjects = 11;
+	m_nObjects = 50;
 
 	float fxPitch = 12.0f * 2.5f;
 	float fyPitch = 0;
@@ -667,76 +682,34 @@ void CObjectsShader::BuildBallObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCo
 
 		if (j == 0) {
 			pGameObject->SetMesh(0, pMesh);
-			xPosition = 740;
-			zPosition = 845;
+			xPosition = 0;
+			zPosition = 0;
 			pGameObject->m_dirVector = { 0.1f , 0.0f, 0.0f };
 
 			pGameObject->SetRotationAxis(XMFLOAT3(0.0f, 0.0f, 50.0f));
 			pGameObject->SetRotationSpeed(-300.0f);
 		}
-		else if (j == 1) {
+		else if (j < 51) {
 			pGameObject->SetMesh(0, pMesh);
-			xPosition = 870;
-			zPosition = 795;
-			pGameObject->m_dirVector = { -0.1f , 0.0f, 0.0f };
+			//pGameObject->m_dirVector = { 0.0f , 0.0f, 0.05f };
 
+			pGameObject->m_dirVector.x = (rand() % 4 + 1) / (float)10;
+			pGameObject->m_dirVector.z = (rand() % 4 + 1) / (float)10;
 
-			pGameObject->SetRotationAxis(XMFLOAT3(0.0f, 0.0f, 50.0f));
-			pGameObject->SetRotationSpeed(300.0f);
-		}
-		else if (j == 2) {
-			pGameObject->SetMesh(0, pMesh);
-			xPosition = 895;
-			zPosition = 800;
-			pGameObject->m_dirVector = { 0.0f , 0.0f, 0.03f };
-
-
-			pGameObject->SetRotationAxis(XMFLOAT3(50.0f, 0.0f, 0.0f));
-			pGameObject->SetRotationSpeed(300.0f);
-		}
-		else if (j < 11) {
-			pGameObject->SetMesh(0, pMesh);
-			pGameObject->m_dirVector = { 0.0f , 0.0f, 0.05f };
-			
 			pGameObject->SetRotationAxis(XMFLOAT3(50.0f, 0.0f, 0.0f));
 			pGameObject->SetRotationSpeed(-300.0f);
 
-			if (j == 3) {
-				xPosition = 845;
-				zPosition = 880;
-			}
-			else if (j == 4) {
-				xPosition = 815;
-				zPosition = 884;
-			}
-			else if (j == 5) {
-				xPosition = 785;
-				zPosition = 888;
-			}
-			else if (j == 6) {
-				xPosition = 755;
-				zPosition = 892;
-			}
-			else if (j == 7) {
-				xPosition = 725;
-				zPosition = 896;
-			}
-			else if (j == 8) {
-				xPosition = 695;
-				zPosition = 900;
-			}
-			else if (j == 9) {
-				xPosition = 665;
-				zPosition = 904;
-			}
-			else if (j == 10) {
-				xPosition = 635;
-				zPosition = 908;
-			}
+			xPosition = rand() % 1600;
+			zPosition = rand() % 1600;
+
+			while (zPosition > 630 && zPosition < 980 && xPosition > 630 && xPosition < 980)
+				xPosition = rand() % 1600;
+				zPosition = rand() % 1600;
 		}
 		
 		fHeight = pTerrain->GetHeight(xPosition, zPosition);
 		pGameObject->SetPosition(xPosition, pTerrain->GetHeight(xPosition, zPosition) + 6.0f, zPosition);
+
 		/*
 		if (y == 0)
 		{
@@ -752,11 +725,14 @@ void CObjectsShader::BuildBallObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCo
 		}
 		*/
 
-
 		m_ppObjects[j] = pGameObject;
+
+		m_ppObjects[j]->m_ColidePoint.Create(10, xPosition, zPosition);
+	
 		//m_ppObjects[j]->SetOOBB(XMFLOAT3(0, 0, 0), XMFLOAT3(20.0f, 20.0f, 20.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
-		m_ppObjects[j]->SetOOBB(XMFLOAT3(xPosition, pTerrain->GetHeight(xPosition, zPosition), zPosition), XMFLOAT3(20.0f, 20.0f, 20.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+		//m_ppObjects[j]->SetOOBB(XMFLOAT3(xPosition, pTerrain->GetHeight(xPosition, zPosition), zPosition), XMFLOAT3(20.0f, 20.0f, 20.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
 	}
+
 	CreateShaderVariables(pd3dDevice, pd3dCommandList);
 }
 
@@ -772,13 +748,50 @@ void CObjectsShader::ReleaseObjects()
 	}
 }
 
-void CObjectsShader::AnimateObjects(float fTimeElapsed)
+void CObjectsShader::AnimateObjects(float fTimeElapsed, void *pContext)
 {
 	for (int j = 0; j < m_nObjects; j++)
 	{
-		m_ppObjects[j]->Animate(fTimeElapsed);
+		m_ppObjects[j]->Animate(fTimeElapsed , pContext);
 	}
 }
+
+void CObjectsShader::DoColide(float playerX, float playerZ) {
+	for (int j = 0; j < m_nObjects - 1; j++)
+	{
+		m_ppObjects[j]->DoColide(playerX,playerZ);
+
+		for (int k = j + 1; k < m_nObjects; k++) {
+			if (m_ppObjects[j]->m_ColidePoint.SayHello(m_ppObjects[k]->m_ColidePoint)) {
+				if (k != m_nObjects - 1) {
+					XMFLOAT3 bufVector = m_ppObjects[j]->m_dirVector;
+					m_ppObjects[j]->m_dirVector = m_ppObjects[k]->m_dirVector;
+					m_ppObjects[k]->m_dirVector = bufVector;
+				}
+			}
+		}
+	}
+	m_ppObjects[m_nObjects - 1]->DoColide(playerX, playerZ);
+}
+
+void CObjectsShader::DoColide(float playerX, float playerZ, bool& m_isOnInput) {
+	for (int j = 0; j < m_nObjects - 1; j++)
+	{
+		m_ppObjects[j]->DoColide(playerX, playerZ);
+
+		for (int k = j + 1; k < m_nObjects; k++) {
+			if (m_ppObjects[j]->m_ColidePoint.SayHello(m_ppObjects[k]->m_ColidePoint)) {
+				if (k != m_nObjects - 1) {
+					XMFLOAT3 bufVector = m_ppObjects[j]->m_dirVector;
+					m_ppObjects[j]->m_dirVector = m_ppObjects[k]->m_dirVector;
+					m_ppObjects[k]->m_dirVector = bufVector;
+				}
+			}
+		}
+	}
+	m_ppObjects[m_nObjects - 1]->DoColide(playerX, playerZ);
+}
+
 
 void CObjectsShader::ReleaseUploadBuffers()
 {
@@ -799,6 +812,10 @@ void CObjectsShader::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera 
 		}
 	}
 }
+
+#pragma endregion
+
+#pragma region [CTeRRainShader Part.]
 
 CTerrainShader::CTerrainShader()
 {
@@ -839,3 +856,5 @@ void CTerrainShader::CreateShader(ID3D12Device *pd3dDevice, ID3D12RootSignature
 	m_ppd3dPipelineStates = new ID3D12PipelineState*[m_nPipelineStates];
 	CShader::CreateShader(pd3dDevice, pd3dGraphicsRootSignature);
 }
+
+#pragma endregion

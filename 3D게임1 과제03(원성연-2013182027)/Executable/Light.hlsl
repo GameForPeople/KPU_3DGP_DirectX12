@@ -1,5 +1,4 @@
 //--------------------------------------------------------------------------------------
-/*
 #define MAX_LIGHTS			8
 #define MAX_MATERIALS		10 
 
@@ -175,4 +174,3 @@ float4 Lighting(float3 vPosition, float3 vNormal)
     return (cColor);
 }
 
-*/

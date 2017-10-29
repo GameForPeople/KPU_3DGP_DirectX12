@@ -274,7 +274,7 @@ void CGameFramework::BuildObjects()
 
 
 	m_pCamera = m_pPlayer->GetCamera();
-	m_pCamera->SetOffset(XMFLOAT3(0.0f, 50.0f, -40.0f));
+	m_pCamera->SetOffset(XMFLOAT3(0.0f, 0.0f , -15.0f));
 
 	m_pd3dCommandList->Close();
 	ID3D12CommandList *ppd3dCommandLists[] = { m_pd3dCommandList };
@@ -296,17 +296,25 @@ void CGameFramework::ProcessInput()
 	DWORD dwDirection = 0;
 	/*키보드의 상태 정보를 반환한다. 화살표 키(‘→’, ‘←’, ‘↑’, ‘↓’)를 누르면 플레이어를 오른쪽/왼쪽(로컬 x-축), 앞/
 	뒤(로컬 z-축)로 이동한다. ‘Page Up’과 ‘Page Down’ 키를 누르면 플레이어를 위/아래(로컬 y-축)로 이동한다.*/
+
+	m_isOnInput = true;
+
+	AnimateObjects();
+
 	if (::GetKeyboardState(pKeyBuffer))
 	{
-		if (pKeyBuffer[VK_UP] & 0xF0) dwDirection |= DIR_FORWARD;
-		if (pKeyBuffer[VK_DOWN] & 0xF0) dwDirection |= DIR_BACKWARD;
-		if (pKeyBuffer[VK_LEFT] & 0xF0) dwDirection |= DIR_LEFT;
-		if (pKeyBuffer[VK_RIGHT] & 0xF0) dwDirection |= DIR_RIGHT;
-		if (pKeyBuffer[VK_PRIOR] & 0xF0) dwDirection |= DIR_UP;
-		if (pKeyBuffer[VK_NEXT] & 0xF0) dwDirection |= DIR_DOWN;
-		if(pKeyBuffer['p'] & 0xF0) m_pPlayer->m_xmf3Position = { 800.0f, 200.0f, 800.0f };
+		if (m_isOnInput) {
+			if (pKeyBuffer[VK_UP] & 0xF0) dwDirection |= DIR_FORWARD;
+			if (pKeyBuffer[VK_DOWN] & 0xF0) dwDirection |= DIR_BACKWARD;
+			if (pKeyBuffer[VK_LEFT] & 0xF0) dwDirection |= DIR_LEFT;
+			if (pKeyBuffer[VK_RIGHT] & 0xF0) dwDirection |= DIR_RIGHT;
+			if (pKeyBuffer[VK_PRIOR] & 0xF0) dwDirection |= DIR_UP;
+			if (pKeyBuffer[VK_NEXT] & 0xF0) dwDirection |= DIR_DOWN;
+		}
+		if (pKeyBuffer['p'] & 0xF0) m_pPlayer->m_xmf3Position = { 800.0f, 200.0f, 800.0f };
 		if (pKeyBuffer['P'] & 0xF0) m_pPlayer->m_xmf3Position = { 800.0f, 200.0f, 800.0f };
-
+		if (pKeyBuffer['l'] & 0xF0) std::cout << "X : " << m_pPlayer->m_xmf3Position.x << "   Y : " << m_pPlayer->m_xmf3Position.y << "   Z : " << m_pPlayer->m_xmf3Position.z << std::endl;
+		if (pKeyBuffer['L'] & 0xF0) std::cout << "X : " << m_pPlayer->m_xmf3Position.x << "   Y : " << m_pPlayer->m_xmf3Position.y << "   Z : " << m_pPlayer->m_xmf3Position.z << std::endl;
 	}
 	float cxDelta = 0.0f, cyDelta = 0.0f;
 	POINT ptCursorPos;
@@ -349,7 +357,7 @@ void CGameFramework::ProcessInput()
 
 void CGameFramework::AnimateObjects()
 {
-	if (m_pScene) m_pScene->AnimateObjects(m_GameTimer.GetTimeElapsed(), *m_pPlayer);
+	if (m_pScene) m_pScene->AnimateObjects(m_GameTimer.GetTimeElapsed(), *m_pPlayer, m_isOnInput);
 }
 
 //#define _WITH_PLAYER_TOP
@@ -357,7 +365,6 @@ void CGameFramework::FrameAdvance()
 {
 	m_GameTimer.Tick(0.0f);
 	ProcessInput();
-	AnimateObjects();
 	HRESULT hResult = m_pd3dCommandAllocator->Reset();
 	hResult = m_pd3dCommandList->Reset(m_pd3dCommandAllocator, NULL);
 	D3D12_RESOURCE_BARRIER d3dResourceBarrier;
@@ -455,8 +462,8 @@ void CGameFramework::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPA
 		case VK_F1:
 		case VK_F2:
 		case VK_F3:
-			m_pCamera = m_pPlayer->ChangeCamera((DWORD)(wParam - VK_F1 + 1),
-				m_GameTimer.GetTimeElapsed());
+			//m_pCamera = m_pPlayer->ChangeCamera((DWORD)(wParam - VK_F1 + 1),
+			//	m_GameTimer.GetTimeElapsed());
 			break;
 		}
 	default:

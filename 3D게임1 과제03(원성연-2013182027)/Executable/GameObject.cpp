@@ -107,10 +107,11 @@ void CGameObject::SetShader(CShader *pShader) {
 	if (m_pShader) m_pShader->AddRef(); 
 }
 
-void CGameObject::Animate(float fTimeElapsed)
+void CGameObject::Animate(float fTimeElapsed, void *pContext)
 {
-	m_xmOOBBTransformed.Transform(m_xmOOBB, XMLoadFloat4x4(&m_xmf4x4World));
-	XMStoreFloat4(&m_xmOOBBTransformed.Orientation, XMQuaternionNormalize(XMLoadFloat4(&m_xmOOBBTransformed.Orientation)));
+
+	//m_xmOOBBTransformed.Transform(m_xmOOBB, XMLoadFloat4x4(&m_xmf4x4World));
+	//XMStoreFloat4(&m_xmOOBBTransformed.Orientation, XMQuaternionNormalize(XMLoadFloat4(&m_xmOOBBTransformed.Orientation)));
 }
 
 void CGameObject::OnPrepareRender()
@@ -254,22 +255,92 @@ CRotatingObject::CRotatingObject(int nMeshes) : CGameObject(nMeshes)
 {
 	m_xmf3RotationAxis = XMFLOAT3(0.0f, 1.0f, 0.0f);
 	m_fRotationSpeed = 15.0f;
+
+	m_dirVector.x = rand() % 50 - 25;
+	m_dirVector.z = rand() % 50 - 25;
+
+	//	m_dirVector.x = 200;
 }
 
 CRotatingObject::~CRotatingObject()
 {
 }
 
-void CRotatingObject::Animate(float fTimeElapsed)
-{
-	if (m_isStatus) {
-		CGameObject::Rotate(&m_xmf3RotationAxis, m_fRotationSpeed * fTimeElapsed);
+void CRotatingObject::DoColide(float playerX, float playerZ) {
+	ColidePoint buffer;
+	buffer.Create(5, playerX, playerZ);
 
-		
-		SetPosition(GetPosition().x + m_dirVector.x, GetPosition().y + m_dirVector.y, GetPosition().z + m_dirVector.z);
+	if (m_ColidePoint.SayHello(buffer)) {
+		m_dirVector.x = -m_dirVector.x;
+		m_dirVector.z = -m_dirVector.z;
 	}
-		m_xmOOBBTransformed.Transform(m_xmOOBB, XMLoadFloat4x4(&m_xmf4x4World));
-		XMStoreFloat4(&m_xmOOBBTransformed.Orientation, XMQuaternionNormalize(XMLoadFloat4(&m_xmOOBBTransformed.Orientation)));
+}
+
+void CRotatingObject::DoColide(float playerX, float playerZ, bool& m_isOnInput) {
+	ColidePoint buffer;
+	buffer.Create(5, playerX, playerZ);
+
+	if (m_ColidePoint.SayHello(buffer)) {
+		m_dirVector.x = -m_dirVector.x;
+		m_dirVector.z = -m_dirVector.z;
+		m_isOnInput = false;
+	}
+}
+
+void CRotatingObject::Animate(float fTimeElapsed, void *pContext)
+{
+	CHeightMapTerrain *pTerrain = (CHeightMapTerrain *)pContext;
+
+	CGameObject::Rotate(&m_xmf3RotationAxis, m_fRotationSpeed * fTimeElapsed);	
+	CRotatingObject::LimitMove(fTimeElapsed);
+
+	SetPosition(GetPosition().x + m_dirVector.x * 3, pTerrain->GetHeight(GetPosition().x, GetPosition().z) + 10, GetPosition().z + m_dirVector.z * 3);
+	
+	m_ColidePoint.Animate(GetPosition().x, GetPosition().z);
+	//m_xmOOBBTransformed.Transform(m_xmOOBB, XMLoadFloat4x4(&m_xmf4x4World));
+	//XMStoreFloat4(&m_xmOOBBTransformed.Orientation, XMQuaternionNormalize(XMLoadFloat4(&m_xmOOBBTransformed.Orientation)));
+}
+
+void CRotatingObject::LimitMove(float fTimeElapsed) {
+	int xPos = GetPosition().x;
+	int zPos = GetPosition().z;
+
+	if (xPos <= 10) {
+		m_dirVector.x = -1 * m_dirVector.x;
+	}
+	else if (xPos >= 1590) {
+		m_dirVector.x = -1 * m_dirVector.x;
+	}
+
+	if (zPos <= 10) {
+		m_dirVector.z = -1 * m_dirVector.z;
+	}
+	else if (zPos >= 1590) {
+		m_dirVector.z = -1 * m_dirVector.z;
+	}
+
+	if (xPos >= 640 && xPos <= 960) {
+		if (zPos >= 635 && zPos <= 645) {
+			m_dirVector.z = -1 * m_dirVector.z;
+			SetPosition(xPos, GetPosition().y, 633);
+		}
+		else if (zPos <= 965 && zPos >= 955) {
+			m_dirVector.z = -1 * m_dirVector.z;
+			SetPosition(xPos, GetPosition().y, 968);
+		}
+	}
+
+	if (zPos >= 640 && zPos <= 960) {
+		if (xPos >= 635 && xPos <= 645) {
+			m_dirVector.x = -1 * m_dirVector.x;
+			SetPosition(633, GetPosition().y, zPos);
+		}
+		else if (xPos <= 965 && xPos >= 955) {
+			m_dirVector.x = -1 * m_dirVector.x;
+			SetPosition(968, GetPosition().y, zPos);
+		}
+	}
+
 }
 
 #pragma endregion
@@ -298,6 +369,10 @@ CHeightMapTerrain::CHeightMapTerrain(ID3D12Device *pd3dDevice, ID3D12GraphicsCom
 	m_nMeshes = cxBlocks * czBlocks;
 	//지형 전체를 표현하기 위한 격자 메쉬에 대한 포인터 배열을 생성한다.
 	m_ppMeshes = new CMesh*[m_nMeshes];
+
+#include <iostream>
+	std::cout << m_nMeshes;
+
 	for (int i = 0; i < m_nMeshes; i++)m_ppMeshes[i] = NULL;
 	CHeightMapGridMesh *pHeightMapGridMesh = NULL;
 	for (int z = 0, zStart = 0; z < czBlocks; z++)

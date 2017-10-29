@@ -6,7 +6,6 @@ CScene::CScene()
 	m_pd3dGraphicsRootSignature = NULL;
 }
 
-
 CScene::~CScene()
 {
 }
@@ -115,7 +114,6 @@ void CScene::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList
 	CreateShaderVariables(pd3dDevice, pd3dCommandList);
 }
 
-
 void CScene::ReleaseObjects()
 {
 	if (m_pd3dGraphicsRootSignature) m_pd3dGraphicsRootSignature->Release();
@@ -133,8 +131,9 @@ void CScene::ReleaseUploadBuffers()
 	if (m_pTerrain) m_pTerrain->ReleaseUploadBuffers();
 }
 
-void CScene::AnimateObjects(float fTimeElapsed, CPlayer& player)
+void CScene::AnimateObjects(float fTimeElapsed, CPlayer& player, bool& m_isOnInput)
 {
+	/*
 	for (int i = 3; i < 11; i++) {
 		if (m_pShaders[1].m_ppObjects[i]->m_isStatus == 0)
 			m_pShaders[1].m_ppObjects[i]->m_isStatus = 1;
@@ -200,8 +199,18 @@ void CScene::AnimateObjects(float fTimeElapsed, CPlayer& player)
 	{
 		m_pShaders[i].AnimateObjects(fTimeElapsed);
 	}
+	*/
 
-#pragma region[플레이어X박스 충돌 ]
+	if (m_nShaders) {
+		for( int i = 0 ; i < m_nShaders; i++)
+			m_pShaders[i].AnimateObjects(fTimeElapsed, m_pTerrain);
+	}
+
+	//캐릭터 공 충돌
+	m_pShaders[1].DoColide(player.GetPosition().x, player.GetPosition().z);
+	
+/*
+#pragma region[ 플레이어 X 공 충돌 ]
 
 	for (int i = 0; i < m_pShaders[1].m_nObjects; i++)
 	{
@@ -214,6 +223,8 @@ void CScene::AnimateObjects(float fTimeElapsed, CPlayer& player)
 		}
 	}
 #pragma endregion
+*/
+	/*
 #pragma region[플레이어X벽 충돌 ]
 	for (int i = 0; i < m_pShaders[0].m_nObjects; i++)
 	{
@@ -226,7 +237,7 @@ void CScene::AnimateObjects(float fTimeElapsed, CPlayer& player)
 		}
 	}
 #pragma endregion
-
+*/
 	if (m_pLights)
 	{
 		m_pLights->m_pLights[1].m_xmf3Position = player.GetPosition();

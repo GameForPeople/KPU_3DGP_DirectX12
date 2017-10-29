@@ -170,6 +170,7 @@ CSpaceShipCamera::CSpaceShipCamera(CCamera *pCamera) : CCamera(pCamera)
 //스페이스-쉽 카메라를 플레이어의 로컬 x-축(Right), y-축(Up), z-축(Look)을 기준으로 회전하는 함수이다.
 void CSpaceShipCamera::Rotate(float x, float y, float z)
 {
+
 	if (m_pPlayer && (x != 0.0f))
 	{
 		//플레이어의 로컬 x-축에 대한 x 각도의 회전 행렬을 계산한다.
@@ -237,7 +238,8 @@ CFirstPersonCamera::CFirstPersonCamera(CCamera *pCamera) : CCamera(pCamera)
 
 void CFirstPersonCamera::Rotate(float x, float y, float z)
 {
-	if (x != 0.0f)
+
+	if ((x != 0.0f))
 	{
 		//카메라의 로컬 x-축을 기준으로 회전하는 행렬을 생성한다. 사람의 경우 고개를 끄떡이는 동작이다.
 		XMMATRIX xmmtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_xmf3Right),
@@ -289,6 +291,7 @@ CThirdPersonCamera::CThirdPersonCamera(CCamera *pCamera) : CCamera(pCamera)
 		것을 의미한다. 즉, 3인칭 카메라의 로컬 x-축 벡터와 로컬 z-축 벡터는 xz-평면에 평행하다.*/
 		if (pCamera->GetMode() == SPACESHIP_CAMERA)
 		{
+
 			m_xmf3Up = XMFLOAT3(0.0f, 1.0f, 0.0f);
 			m_xmf3Right.y = 0.0f;
 			m_xmf3Look.y = 0.0f;
@@ -300,6 +303,7 @@ CThirdPersonCamera::CThirdPersonCamera(CCamera *pCamera) : CCamera(pCamera)
 
 void CThirdPersonCamera::Update(XMFLOAT3& xmf3LookAt, float fTimeElapsed)
 {
+	//std::cout << m_pPlayer->GetPosition().x  << "   "  << m_pPlayer->GetPosition().y << "  " << m_pPlayer->GetPosition().z << "  " << std::endl;
 	/*플레이어가 있으면 플레이어의 회전에 따라 3인칭 카메라도 회전해야 한다.*/
 	if (m_pPlayer)
 	{
@@ -319,6 +323,8 @@ void CThirdPersonCamera::Update(XMFLOAT3& xmf3LookAt, float fTimeElapsed)
 		//회전한 카메라의 위치는 플레이어의 위치에 회전한 카메라 오프셋 벡터를 더한 것이다.
 		XMFLOAT3 xmf3Position = Vector3::Add(m_pPlayer->GetPosition(), xmf3Offset);
 		//현재의 카메라의 위치에서 회전한 카메라의 위치까지의 방향과 거리를 나타내는 벡터이다.
+		xmf3Position.y += 7.0f;
+
 		XMFLOAT3 xmf3Direction = Vector3::Subtract(xmf3Position, m_xmf3Position);
 		float fLength = Vector3::Length(xmf3Direction);
 		xmf3Direction = Vector3::Normalize(xmf3Direction);
@@ -346,8 +352,8 @@ void CThirdPersonCamera::SetLookAt(XMFLOAT3& xmf3LookAt)
 	XMFLOAT4X4 mtxLookAt = Matrix4x4::LookAtLH(m_xmf3Position, xmf3LookAt,
 	m_pPlayer->GetUpVector());
 	//카메라 변환 행렬에서 카메라의 x-축, y-축, z-축을 구한다.
-	m_xmf3Right = XMFLOAT3(mtxLookAt._11, mtxLookAt._21, mtxLookAt._31);
-	m_xmf3Up = XMFLOAT3(mtxLookAt._12, mtxLookAt._22, mtxLookAt._32);
-	m_xmf3Look = XMFLOAT3(mtxLookAt._13, mtxLookAt._23, mtxLookAt._33);
+	m_xmf3Right = XMFLOAT3(mtxLookAt._11 , mtxLookAt._21  , mtxLookAt._31  );
+	m_xmf3Up = XMFLOAT3(mtxLookAt._12 , mtxLookAt._22  , mtxLookAt._32);
+	m_xmf3Look = XMFLOAT3(mtxLookAt._13 , mtxLookAt._23 + 0.5f , mtxLookAt._33 );
 }
 
