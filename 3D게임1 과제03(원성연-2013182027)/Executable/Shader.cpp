@@ -369,7 +369,7 @@ void CObjectsShader::UpdateShaderVariables(ID3D12GraphicsCommandList *pd3dComman
 		XMStoreFloat4x4(&xmf4x4World, XMMatrixTranspose(XMLoadFloat4x4(&m_ppObjects[j]->m_xmf4x4World)));
 		CB_GAMEOBJECT_INFO *pbMappedcbGameObject = (CB_GAMEOBJECT_INFO *)(m_pcbMappedGameObjects + (j * ncbGameObjectBytes));
 		::memcpy(&pbMappedcbGameObject->m_xmf4x4World, &xmf4x4World, sizeof(XMFLOAT4X4));
-		pbMappedcbGameObject->m_nMaterial = m_ppObjects[j]->m_pMaterial->m_nReflection;
+		pbMappedcbGameObject->m_nMaterial = m_ppObjects[j]->m_pMaterial->m_nReflection;	
 	}
 }
 
@@ -388,6 +388,7 @@ void CObjectsShader::ReleaseShaderVariables()
 void CObjectsShader::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList
 	*pd3dCommandList, void *pContext)
 {
+#ifdef NEW_CODE
 	CHeightMapTerrain *pTerrain = (CHeightMapTerrain *)pContext;
 	float fTerrainWidth = pTerrain->GetWidth(), fTerrainLength = pTerrain->GetLength();
 	float fxPitch = 12.0f * 3.5f;
@@ -399,8 +400,9 @@ void CObjectsShader::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsComman
 
 	m_nObjects = xObjects * yObjects * zObjects;
 	m_ppObjects = new CGameObject*[m_nObjects];
-	CCubeMeshDiffused *pCubeMesh = new CCubeMeshDiffused(pd3dDevice, pd3dCommandList,
-		12.0f, 12.0f, 12.0f);
+	//CCubeMeshDiffused *pCubeMesh = new CCubeMeshDiffused(pd3dDevice, pd3dCommandList, 12.0f, 12.0f, 12.0f);
+	CCubeMeshIlluminated *pCubeMesh = new CCubeMeshIlluminated(pd3dDevice, pd3dCommandList, 12.0f, 12.0f, 12.0f);
+
 	XMFLOAT3 xmf3RotateAxis, xmf3SurfaceNormal;
 	CRotatingObject *pRotatingObject = NULL;
 	for (int i = 0, x = 0; x < xObjects; x++)
@@ -436,6 +438,58 @@ void CObjectsShader::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsComman
 		}
 	}
 	CreateShaderVariables(pd3dDevice, pd3dCommandList);
+#endif
+#ifndef NEW_CODE
+	CHeightMapTerrain *pTerrain = (CHeightMapTerrain *)pContext;
+	float fTerrainWidth = pTerrain->GetWidth(), fTerrainLength = pTerrain->GetLength();
+	float fxPitch = 12.0f * 3.5f;
+	float fyPitch = 12.0f * 3.5f;
+	float fzPitch = 12.0f * 3.5f;
+	//직육면체를 지형 표면에 그리고 지형보다 높은 위치에 일정한 간격으로 배치한다.
+	int xObjects = int(fTerrainWidth / fxPitch), yObjects = 2, zObjects =
+		int(fTerrainLength / fzPitch);
+
+	m_nObjects = xObjects * yObjects * zObjects;
+	m_ppObjects = new CGameObject*[m_nObjects];
+	//CCubeMeshDiffused *pCubeMesh = new CCubeMeshDiffused(pd3dDevice, pd3dCommandList, 12.0f, 12.0f, 12.0f);
+	CCubeMeshIlluminated *pCubeMesh = new CCubeMeshIlluminated(pd3dDevice, pd3dCommandList, 12.0f, 12.0f, 12.0f);
+
+	XMFLOAT3 xmf3RotateAxis, xmf3SurfaceNormal;
+	CRotatingObject *pRotatingObject = NULL;
+	for (int i = 0, x = 0; x < xObjects; x++)
+	{
+		for (int z = 0; z < zObjects; z++)
+		{
+			for (int y = 0; y < yObjects; y++)
+			{
+				pRotatingObject = new CRotatingObject(1);
+				pRotatingObject->SetMesh(0, pCubeMesh);
+				float xPosition = x * fxPitch;
+				float zPosition = z * fzPitch;
+				float fHeight = pTerrain->GetHeight(xPosition, zPosition);
+				pRotatingObject->SetPosition(xPosition, fHeight + (y * 10.0f * fyPitch) +
+					6.0f, zPosition);
+				if (y == 0)
+				{
+					/*지형의 표면에 위치하는 직육면체는 지형의 기울기에 따라 방향이 다르게 배치한다. 직육면체가 위치할 지형의 법선
+					벡터 방향과 직육면체의 y-축이 일치하도록 한다.*/
+					xmf3SurfaceNormal = pTerrain->GetNormal(xPosition, zPosition);
+					xmf3RotateAxis = Vector3::CrossProduct(XMFLOAT3(0.0f, 1.0f, 0.0f),
+						xmf3SurfaceNormal);
+					if (Vector3::IsZero(xmf3RotateAxis)) xmf3RotateAxis = XMFLOAT3(0.0f, 1.0f,
+						0.0f);
+					float fAngle = acos(Vector3::DotProduct(XMFLOAT3(0.0f, 1.0f, 0.0f),
+						xmf3SurfaceNormal));
+					pRotatingObject->Rotate(&xmf3RotateAxis, XMConvertToDegrees(fAngle));
+				}
+				pRotatingObject->SetRotationAxis(XMFLOAT3(0.0f, 1.0f, 0.0f));
+				pRotatingObject->SetRotationSpeed(36.0f * (i % 10) + 36.0f);
+				m_ppObjects[i++] = pRotatingObject;
+			}
+		}
+	}
+	CreateShaderVariables(pd3dDevice, pd3dCommandList);
+#endif
 }
 
 void CObjectsShader::BuildWallObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList
@@ -444,7 +498,7 @@ void CObjectsShader::BuildWallObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCo
 	CHeightMapTerrain *pTerrain = (CHeightMapTerrain *)pContext;
 
 	//직육면체를 지형 표면에 그리고 지형보다 높은 위치에 일정한 간격으로 배치한다.
-
+	
 	float x_len = 15.0f;
 	float xPosition{ 0 };
 	float zPosition{ 0 };
@@ -803,6 +857,25 @@ void CObjectsShader::ReleaseUploadBuffers()
 
 void CObjectsShader::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera)
 {
+#ifdef NEW_CODE
+#pragma region [New Code]
+	CShader::Render(pd3dCommandList, pCamera);
+	UpdateShaderVariables(pd3dCommandList);
+	UINT ncbGameObjectBytes = ((sizeof(CB_GAMEOBJECT_INFO) + 255) & ~255);
+	D3D12_GPU_VIRTUAL_ADDRESS d3dcbGameObjectGpuVirtualAddress = m_pd3dcbGameObjects->GetGPUVirtualAddress();
+	
+	for (int j = 0; j < m_nObjects; j++)
+	{
+		if (m_ppObjects[j])
+		{
+			pd3dCommandList->SetGraphicsRootConstantBufferView(2, d3dcbGameObjectGpuVirtualAddress + (ncbGameObjectBytes * j));
+			m_ppObjects[j]->Render(pd3dCommandList, pCamera);
+		}
+	}
+#endif
+#pragma endregion
+#ifndef NEW_CODE
+#pragma region [Old Code]
 	CShader::Render(pd3dCommandList, pCamera);
 	for (int j = 0; j < m_nObjects; j++)
 	{
@@ -811,6 +884,8 @@ void CObjectsShader::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera 
 			m_ppObjects[j]->Render(pd3dCommandList, pCamera);
 		}
 	}
+#endif
+#pragma endregion
 }
 
 #pragma endregion

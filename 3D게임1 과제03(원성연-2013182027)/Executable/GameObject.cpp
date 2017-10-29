@@ -120,12 +120,12 @@ void CGameObject::OnPrepareRender()
 
 void CGameObject::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera)
 {
-	//게임 객체가 카메라에 보이면 렌더링한다.
+	//게임 객체가 카메라에 보이면 렌더링한다.-> 어케암?
 	if (IsVisible(pCamera))
 	{
 		UpdateShaderVariables(pd3dCommandList);
 		if (m_pShader) m_pShader->Render(pd3dCommandList, pCamera);
-		//게임 객체가 포함하는 모든 메쉬를 렌더링한다.
+		//게임 객체가 포함하는 모든 메쉬를 렌더링한다.~~~~~~~~~~~~~~~~~
 		if (m_ppMeshes)
 		{
 			{
@@ -369,9 +369,6 @@ CHeightMapTerrain::CHeightMapTerrain(ID3D12Device *pd3dDevice, ID3D12GraphicsCom
 	m_nMeshes = cxBlocks * czBlocks;
 	//지형 전체를 표현하기 위한 격자 메쉬에 대한 포인터 배열을 생성한다.
 	m_ppMeshes = new CMesh*[m_nMeshes];
-
-#include <iostream>
-	std::cout << m_nMeshes;
 
 	for (int i = 0; i < m_nMeshes; i++)m_ppMeshes[i] = NULL;
 	CHeightMapGridMesh *pHeightMapGridMesh = NULL;
