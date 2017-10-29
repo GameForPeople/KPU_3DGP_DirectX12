@@ -217,8 +217,16 @@ void CShader::ReleaseShaderVariables()
 
 void CShader::OnPrepareRender(ID3D12GraphicsCommandList *pd3dCommandList)
 {
+#ifdef NEW_CODE
+	//새로운 코드
+	pd3dCommandList->SetPipelineState(m_ppd3dPipelineStates[0]);
+#endif
+
+#ifndef NEW_CODE
 	//파이프라인에 그래픽스 상태 객체를 설정한다.
 	pd3dCommandList->SetPipelineState(m_ppd3dPipelineStates[0]);
+#endif
+
 }
 void CShader::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera)
 {
@@ -294,6 +302,23 @@ void CPlayerShader::ReleaseShaderVariables()
 		m_pd3dcbPlayer->Unmap(0, NULL);
 		m_pd3dcbPlayer->Release();
 	}
+}
+
+void CPlayerShader::OnPrepareRender(ID3D12GraphicsCommandList *pd3dCommandList)
+{
+#ifdef NEW_CODE
+	//새로운 코드
+	pd3dCommandList->SetPipelineState(m_ppd3dPipelineStates[0]);
+
+	D3D12_GPU_VIRTUAL_ADDRESS d3dGpuVirtualAddress = m_pd3dcbPlayer->GetGPUVirtualAddress();
+	pd3dCommandList->SetGraphicsRootConstantBufferView(0, d3dGpuVirtualAddress);
+#endif
+
+#ifndef NEW_CODE
+	//파이프라인에 그래픽스 상태 객체를 설정한다.
+	pd3dCommandList->SetPipelineState(m_ppd3dPipelineStates[0]);
+#endif
+
 }
 
 /*
@@ -382,6 +407,22 @@ void CObjectsShader::ReleaseShaderVariables()
 	}
 }
 
+void CObjectsShader::OnPrepareRender(ID3D12GraphicsCommandList *pd3dCommandList)
+{
+#ifdef NEW_CODE
+	//새로운 코드
+	pd3dCommandList->SetPipelineState(m_ppd3dPipelineStates[0]);
+
+	D3D12_GPU_VIRTUAL_ADDRESS d3dGpuVirtualAddress = m_pd3dcbGameObjects->GetGPUVirtualAddress();
+	pd3dCommandList->SetGraphicsRootConstantBufferView(0, d3dGpuVirtualAddress);
+#endif
+
+#ifndef NEW_CODE
+	//파이프라인에 그래픽스 상태 객체를 설정한다.
+	pd3dCommandList->SetPipelineState(m_ppd3dPipelineStates[0]);
+#endif
+
+}
 
 // Build Object
 
@@ -932,4 +973,21 @@ void CTerrainShader::CreateShader(ID3D12Device *pd3dDevice, ID3D12RootSignature
 	CShader::CreateShader(pd3dDevice, pd3dGraphicsRootSignature);
 }
 
+void CTerrainShader::OnPrepareRender(ID3D12GraphicsCommandList *pd3dCommandList)
+{
+#ifdef NEW_CODE
+	//새로운 코드
+	pd3dCommandList->SetPipelineState(m_ppd3dPipelineStates[0]);
+
+	
+	D3D12_GPU_VIRTUAL_ADDRESS d3dGpuVirtualAddress = m_pd3dcbTerrain->GetGPUVirtualAddress();
+	pd3dCommandList->SetGraphicsRootConstantBufferView(0, d3dGpuVirtualAddress);
+#endif
+
+#ifndef NEW_CODE
+	//파이프라인에 그래픽스 상태 객체를 설정한다.
+	pd3dCommandList->SetPipelineState(m_ppd3dPipelineStates[0]);
+#endif
+
+}
 #pragma endregion

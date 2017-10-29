@@ -71,6 +71,8 @@ public:
 
 	virtual void UpdateShaderVariable(ID3D12GraphicsCommandList *pd3dCommandList, XMFLOAT4X4 *pxmf4x4World);
 
+	virtual void OnPrepareRender(ID3D12GraphicsCommandList *pd3dCommandList);
+
 	//virtual void Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera);
 
 protected:
@@ -117,6 +119,8 @@ public:
 	virtual void BuildWallObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, void *pContext);
 	virtual void BuildBallObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, void *pContext);
 
+	virtual void OnPrepareRender(ID3D12GraphicsCommandList *pd3dCommandList);
+
 	
 public:
 	CGameObject **m_ppObjects = NULL;
@@ -138,6 +142,8 @@ public:
 	virtual D3D12_SHADER_BYTECODE CreatePixelShader(ID3DBlob **ppd3dShaderBlob);
 	virtual void CreateShader(ID3D12Device *pd3dDevice, ID3D12RootSignature
 		*pd3dGraphicsRootSignature);
+
+	virtual void OnPrepareRender(ID3D12GraphicsCommandList *pd3dCommandList);
 
 	ID3D12Resource					*m_pd3dcbTerrain = NULL;
 	UINT8							*m_pcbMappedTerrain = NULL;
