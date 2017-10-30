@@ -1,9 +1,9 @@
+
 // 상수버퍼1 은 플레이어정보여
 cbuffer cbPlayerInfo : register(b0)
 {
     matrix gmtxPlayerWorld : packoffset(c0);
 };
-
 
 //카메라의 정보를 위한 상수 버퍼를 선언한다.
 cbuffer cbCameraInfo : register(b1)
@@ -82,7 +82,7 @@ float4 PSPlayer(VS_DIFFUSED_OUTPUT input) : SV_TARGET
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-#define _WITH_VERTEX_LIGHTING
+//#define _WITH_VERTEX_LIGHTING
 
 struct VS_LIGHTING_INPUT
 {
@@ -126,38 +126,3 @@ float4 PSLighting(VS_LIGHTING_OUTPUT input) : SV_TARGET
 #endif
 }
 
-
-
-//정점 셰이더를 정의한다.
-
-/*
-VS_OUTPUT VSDiffused(VS_INPUT input)
-{
-    VS_OUTPUT output;
-    output.position = mul(mul(mul(float4(input.position, 1.0f), gmtxWorld), gmtxView),
-gmtxProjection);
-    output.color = input.color;
-    return (output);
-}
-//픽셀 셰이더를 정의한다.
-float4 PSDiffused(VS_OUTPUT input) : SV_TARGET
-{
-    return (input.color);
-}
-*/
-/*
-//정점 셰이더를 정의한다.
-VS_OUTPUT VSMain(VS_INPUT input)
-{
-    VS_OUTPUT output;
-    output.position = float4(input.position, 1.0f);
-    output.color = input.
-color;
-    return (output);
-}
-//픽셀 셰이더를 정의한다.
-float4 PSMain(VS_OUTPUT input) : SV_TARGET
-{
-    return (input.color);
-}
-*/

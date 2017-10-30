@@ -16,35 +16,6 @@ CShader::~CShader()
 	}
 }
 
-D3D12_INPUT_LAYOUT_DESC CShader::CreateInputLayout()
-{
-	D3D12_INPUT_LAYOUT_DESC d3dInputLayoutDesc;
-	d3dInputLayoutDesc.pInputElementDescs = NULL;
-	d3dInputLayoutDesc.NumElements = 0;
-	return(d3dInputLayoutDesc);
-}
-
-D3D12_RASTERIZER_DESC CShader::CreateRasterizerState()
-{
-	D3D12_RASTERIZER_DESC d3dRasterizerDesc;
-	::ZeroMemory(&d3dRasterizerDesc, sizeof(D3D12_RASTERIZER_DESC));
-	
-	d3dRasterizerDesc.FillMode = D3D12_FILL_MODE_SOLID;
-	//d3dRasterizerDesc.FillMode = D3D12_FILL_MODE_WIREFRAME;
-
-	d3dRasterizerDesc.CullMode = D3D12_CULL_MODE_BACK;
-	d3dRasterizerDesc.FrontCounterClockwise = FALSE;
-	d3dRasterizerDesc.DepthBias = 0;
-	d3dRasterizerDesc.DepthBiasClamp = 0.0f;
-	d3dRasterizerDesc.SlopeScaledDepthBias = 0.0f;
-	d3dRasterizerDesc.DepthClipEnable = TRUE;
-	d3dRasterizerDesc.MultisampleEnable = FALSE;
-	d3dRasterizerDesc.AntialiasedLineEnable = FALSE;
-	d3dRasterizerDesc.ForcedSampleCount = 0;
-	d3dRasterizerDesc.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
-	return(d3dRasterizerDesc);
-}
-
 D3D12_BLEND_DESC CShader::CreateBlendState()
 {
 	D3D12_BLEND_DESC d3dBlendDesc;
@@ -63,6 +34,14 @@ D3D12_BLEND_DESC CShader::CreateBlendState()
 	d3dBlendDesc.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
 	return(d3dBlendDesc);
 
+}
+
+D3D12_INPUT_LAYOUT_DESC CShader::CreateInputLayout()
+{
+	D3D12_INPUT_LAYOUT_DESC d3dInputLayoutDesc;
+	d3dInputLayoutDesc.pInputElementDescs = NULL;
+	d3dInputLayoutDesc.NumElements = 0;
+	return(d3dInputLayoutDesc);
 }
 
 D3D12_DEPTH_STENCIL_DESC CShader::CreateDepthStencilState()
@@ -88,7 +67,6 @@ D3D12_DEPTH_STENCIL_DESC CShader::CreateDepthStencilState()
 	return(d3dDepthStencilDesc);
 }
 
-
 D3D12_SHADER_BYTECODE CShader::CreateVertexShader(ID3DBlob **ppd3dShaderBlob)
 {
 	D3D12_SHADER_BYTECODE d3dShaderByteCode;
@@ -96,6 +74,7 @@ D3D12_SHADER_BYTECODE CShader::CreateVertexShader(ID3DBlob **ppd3dShaderBlob)
 	d3dShaderByteCode.pShaderBytecode = NULL;
 	return(d3dShaderByteCode);
 }
+
 D3D12_SHADER_BYTECODE CShader::CreatePixelShader(ID3DBlob **ppd3dShaderBlob)
 {
 	D3D12_SHADER_BYTECODE d3dShaderByteCode;
@@ -112,8 +91,16 @@ D3D12_SHADER_BYTECODE CShader::CompileShaderFromFile(WCHAR *pszFileName,
 #if defined(_DEBUG) 
 	nCompileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
 #endif
-	::D3DCompileFromFile(pszFileName, NULL, NULL, pszShaderName, pszShaderProfile,
-		nCompileFlags, 0, ppd3dShaderBlob, NULL);
+	
+	D3DCompileFromFile(pszFileName, 
+		NULL, 
+		D3D_COMPILE_STANDARD_FILE_INCLUDE,
+		pszShaderName, 
+		pszShaderProfile,
+		nCompileFlags, 
+		0, 
+		ppd3dShaderBlob, 
+		NULL);
 
 	D3D12_SHADER_BYTECODE d3dShaderByteCode;
 	d3dShaderByteCode.BytecodeLength = (*ppd3dShaderBlob)->GetBufferSize();
@@ -166,7 +153,6 @@ D3D12_SHADER_BYTECODE CShader::ReadCompiledShaderFromFile(WCHAR *pszFileName, ID
 //그래픽스 파이프라인 상태 객체를 생성한다.
 //그래픽스 파이프라인 상태 객체를 생성한다.
 
-
 void CShader::CreateShader(ID3D12Device *pd3dDevice, ID3D12RootSignature *pd3dGraphicsRootSignature)
 {
 	ID3DBlob *pd3dVertexShaderBlob = NULL, *pd3dPixelShaderBlob = NULL;
@@ -203,9 +189,13 @@ void CShader::UpdateShaderVariables(ID3D12GraphicsCommandList *pd3dCommandList)
 }
 void CShader::UpdateShaderVariable(ID3D12GraphicsCommandList *pd3dCommandList, XMFLOAT4X4 *pxmf4x4World)
 {
+#ifdef NEW_CODE
+#endif
+#ifndef NEW_CODE
 	XMFLOAT4X4 xmf4x4World;
 	XMStoreFloat4x4(&xmf4x4World, XMMatrixTranspose(XMLoadFloat4x4(pxmf4x4World)));
 	pd3dCommandList->SetGraphicsRoot32BitConstants(0, 16, &xmf4x4World, 0);
+#endif // !1
 }
 void CShader::UpdateShaderVariable(ID3D12GraphicsCommandList *pd3dCommandList, MATERIAL *pMaterial)
 {
@@ -246,6 +236,20 @@ CPlayerShader::~CPlayerShader()
 
 D3D12_INPUT_LAYOUT_DESC CPlayerShader::CreateInputLayout()
 {
+#ifdef NEW_CODE
+	UINT nInputElementDescs = 2;
+	D3D12_INPUT_ELEMENT_DESC *pd3dInputElementDescs = new
+		D3D12_INPUT_ELEMENT_DESC[nInputElementDescs];
+	pd3dInputElementDescs[0] = { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,
+		D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	pd3dInputElementDescs[1] = { "NORMAL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12,
+		D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	D3D12_INPUT_LAYOUT_DESC d3dInputLayoutDesc;
+	d3dInputLayoutDesc.pInputElementDescs = pd3dInputElementDescs;
+	d3dInputLayoutDesc.NumElements = nInputElementDescs;
+	return(d3dInputLayoutDesc);
+#endif
+#ifndef NEW_CODE
 	UINT nInputElementDescs = 2;
 	D3D12_INPUT_ELEMENT_DESC *pd3dInputElementDescs = new
 		D3D12_INPUT_ELEMENT_DESC[nInputElementDescs];
@@ -257,18 +261,31 @@ D3D12_INPUT_LAYOUT_DESC CPlayerShader::CreateInputLayout()
 	d3dInputLayoutDesc.pInputElementDescs = pd3dInputElementDescs;
 	d3dInputLayoutDesc.NumElements = nInputElementDescs;
 	return(d3dInputLayoutDesc);
+#endif
+
 }
 
 D3D12_SHADER_BYTECODE CPlayerShader::CreateVertexShader(ID3DBlob **ppd3dShaderBlob)
 {
-	return(CShader::CompileShaderFromFile(L"Shaders.hlsl", "VSDiffused", "vs_5_1",
-		ppd3dShaderBlob));
+#ifdef NEW_CODE
+	return(CShader::CompileShaderFromFile(L"Shaders.hlsl", "VSLighting", "vs_5_1",ppd3dShaderBlob));
+#endif
+#ifndef NEW_CODE
+	return(CShader::CompileShaderFromFile(L"Shaders.hlsl", "VSDiffused", "vs_5_1", ppd3dShaderBlob));
+
+#endif
 }
 D3D12_SHADER_BYTECODE CPlayerShader::CreatePixelShader(ID3DBlob **ppd3dShaderBlob)
 {
-	return(CShader::CompileShaderFromFile(L"Shaders.hlsl", "PSDiffused", "ps_5_1",
-		ppd3dShaderBlob));
+#ifdef NEW_CODE
+	return(CShader::CompileShaderFromFile(L"Shaders.hlsl", "PSLighting", "ps_5_1", ppd3dShaderBlob));
+#endif
+#ifndef NEW_CODE
+	return(CShader::CompileShaderFromFile(L"Shaders.hlsl", "PSDiffused", "ps_5_1", ppd3dShaderBlob));
+#endif
+
 }
+
 void CPlayerShader::CreateShader(ID3D12Device *pd3dDevice, ID3D12RootSignature *pd3dGraphicsRootSignature)
 {
 	m_nPipelineStates = 1;
@@ -342,8 +359,23 @@ CObjectsShader::~CObjectsShader()
 {
 }
 
+//정점버퍼의 구조
 D3D12_INPUT_LAYOUT_DESC CObjectsShader::CreateInputLayout()
 {
+#ifdef NEW_CODE
+	UINT nInputElementDescs = 2;
+	D3D12_INPUT_ELEMENT_DESC *pd3dInputElementDescs = new D3D12_INPUT_ELEMENT_DESC[nInputElementDescs];
+
+	pd3dInputElementDescs[0] = { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	pd3dInputElementDescs[1] = { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+
+	D3D12_INPUT_LAYOUT_DESC d3dInputLayoutDesc;
+	d3dInputLayoutDesc.pInputElementDescs = pd3dInputElementDescs;
+	d3dInputLayoutDesc.NumElements = nInputElementDescs;
+
+	return(d3dInputLayoutDesc);
+#endif
+#ifndef NEW_CODE
 	UINT nInputElementDescs = 2;
 	D3D12_INPUT_ELEMENT_DESC *pd3dInputElementDescs = new
 		D3D12_INPUT_ELEMENT_DESC[nInputElementDescs];
@@ -355,17 +387,49 @@ D3D12_INPUT_LAYOUT_DESC CObjectsShader::CreateInputLayout()
 	d3dInputLayoutDesc.pInputElementDescs = pd3dInputElementDescs;
 	d3dInputLayoutDesc.NumElements = nInputElementDescs;
 	return(d3dInputLayoutDesc);
+#endif
+}
+
+D3D12_RASTERIZER_DESC CShader::CreateRasterizerState()
+{
+	D3D12_RASTERIZER_DESC d3dRasterizerDesc;
+	::ZeroMemory(&d3dRasterizerDesc, sizeof(D3D12_RASTERIZER_DESC));
+	d3dRasterizerDesc.FillMode = D3D12_FILL_MODE_SOLID; // D3D12_FILL_MODE_WIREFRAME
+	d3dRasterizerDesc.CullMode = D3D12_CULL_MODE_BACK; // D3D12_CULL_MODE_NONE ||| D3D12_CULL_MODE_FRONT
+	d3dRasterizerDesc.FrontCounterClockwise = FALSE;
+	d3dRasterizerDesc.DepthBias = 0;
+	d3dRasterizerDesc.DepthBiasClamp = 0.0f;
+	d3dRasterizerDesc.SlopeScaledDepthBias = 0.0f;
+	d3dRasterizerDesc.DepthClipEnable = TRUE;
+	d3dRasterizerDesc.MultisampleEnable = FALSE;
+	d3dRasterizerDesc.AntialiasedLineEnable = FALSE;
+	d3dRasterizerDesc.ForcedSampleCount = 0;
+	d3dRasterizerDesc.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
+	return(d3dRasterizerDesc);
 }
 
 D3D12_SHADER_BYTECODE CObjectsShader::CreateVertexShader(ID3DBlob **ppd3dShaderBlob)
 {
-	return(CShader::CompileShaderFromFile(L"Shaders.hlsl", "VSDiffused", "vs_5_1",
-		ppd3dShaderBlob));
+#ifdef NEW_CODE
+	return(CShader::CompileShaderFromFile(L"Shaders.hlsl", "VSDiffused", "vs_5_1", ppd3dShaderBlob));
+	//return(CShader::CompileShaderFromFile(L"Shaders.hlsl", "VSLighting", "vs_5_1", ppd3dShaderBlob));
+#endif
+
+#ifndef NEW_CODE
+	return(CShader::CompileShaderFromFile(L"Shaders.hlsl", "VSDiffused", "vs_5_1", ppd3dShaderBlob));
+
+#endif
 }
 D3D12_SHADER_BYTECODE CObjectsShader::CreatePixelShader(ID3DBlob **ppd3dShaderBlob)
 {
-	return(CShader::CompileShaderFromFile(L"Shaders.hlsl", "PSDiffused", "ps_5_1",
-		ppd3dShaderBlob));
+#ifdef NEW_CODE
+	return(CShader::CompileShaderFromFile(L"Shaders.hlsl", "PSLighting", "ps_5_1", ppd3dShaderBlob));
+#endif
+
+#ifndef NEW_CODE
+	return(CShader::CompileShaderFromFile(L"Shaders.hlsl", "PSDiffused", "ps_5_1", ppd3dShaderBlob));
+
+#endif
 }
 
 void CObjectsShader::CreateShader(ID3D12Device *pd3dDevice, ID3D12RootSignature
@@ -536,6 +600,108 @@ void CObjectsShader::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsComman
 void CObjectsShader::BuildWallObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList
 	*pd3dCommandList, void *pContext)
 {
+#ifdef NEW_CODE
+	CHeightMapTerrain *pTerrain = (CHeightMapTerrain *)pContext;
+
+	//직육면체를 지형 표면에 그리고 지형보다 높은 위치에 일정한 간격으로 배치한다.
+	float x_len = 15.0f;
+	float xPosition{ 0 };
+	float zPosition{ 0 };
+	float fHeight{ 0 };
+	m_nObjects = 100;	//92;
+	m_ppObjects = new CGameObject*[m_nObjects];
+	
+	CWallMeshIlluminated *pWallMesh1 = new CWallMeshIlluminated(pd3dDevice, pd3dCommandList, x_len, 150.0f, 1.0f, 1);
+	CWallMeshIlluminated *pWallMesh2 = new CWallMeshIlluminated(pd3dDevice, pd3dCommandList, x_len, 150.0f, 1.0f, 2);
+	CWallMeshIlluminated *pWallMesh3 = new CWallMeshIlluminated(pd3dDevice, pd3dCommandList, 100.0f, 1.0f, 100.0f, 1);	//이놈이 아래 바닥 할꺼야
+
+	CGameObject *pGameObject = NULL;
+
+	for (int j = 0; j < m_nObjects; j++) {
+
+		pGameObject = new CGameObject(1);
+
+		int vUpObject = 0;
+
+		if (j < 20) {
+			pGameObject->SetMesh(0, pWallMesh1);
+			xPosition = 800 - x_len * (j - 9.5f);
+			zPosition = 950;	//200차이가 나야함 오그래?? 오~~~
+		}
+		else if (j < 40) {
+			int h = j - 20;
+			pGameObject->SetMesh(0, pWallMesh1);
+			xPosition = 800 - x_len * (h - 9.5f);
+			zPosition = 650;
+		}
+		else if (j < 60) {
+			int h = j - 40;
+			pGameObject->SetMesh(0, pWallMesh2);
+			xPosition = 950;
+			zPosition = 800 - x_len * (h - 9.5f);
+		}
+		else if (j < 80) {
+			int h = j - 60;
+			pGameObject->SetMesh(0, pWallMesh2);
+			xPosition = 650;
+			zPosition = 800 - x_len * (h - 9.5f);
+		}
+		else if (j < 90) {
+			int h = (j - 80);
+			vUpObject = h / 3;
+			h = h % 3;
+			// 0 0, 1 0, 2 0, 0 1, 1 1, 2 1, 0 2, 1 2, 2 2
+
+			pGameObject->SetMesh(0, pWallMesh3);
+			xPosition = 700 + 100 * h;
+			zPosition = 700 + 100 * vUpObject;
+
+			if (j == 89) {
+				zPosition = -1000;
+			}
+		}
+		else if (j < 100) {
+			int h = (j - 90);
+			vUpObject = h / 3;
+			h = h % 3;
+
+			pGameObject->SetMesh(0, pWallMesh3);
+			xPosition = 700 + 100 * h;
+			zPosition = 700 + 100 * vUpObject;
+
+			if (j == 99) {
+				zPosition = -1000;
+			}
+		}
+
+		//fHeight = pTerrain->GetHeight(xPosition, zPosition);
+		if (j < 80)
+			pGameObject->SetPosition(xPosition, pTerrain->GetHeight(xPosition, zPosition) + 6.0f, zPosition);
+		else if (j < 90)
+			pGameObject->SetPosition(xPosition, pTerrain->GetHeight(xPosition, zPosition) + 80.0f, zPosition);
+		else
+			pGameObject->SetPosition(xPosition, pTerrain->GetHeight(xPosition, zPosition), zPosition);
+
+		/*
+		if (y == 0)
+		{
+		//지형의 표면에 위치하는 직육면체는 지형의 기울기에 따라 방향이 다르게 배치한다. 직육면체가 위치할 지형의 법선벡터 방향과 직육면체의 y-축이 일치하도록 한다.
+		xmf3SurfaceNormal = pTerrain->GetNormal(xPosition, zPosition);
+		xmf3RotateAxis = Vector3::CrossProduct(XMFLOAT3(0.0f, 1.0f, 0.0f),
+		xmf3SurfaceNormal);
+		if (Vector3::IsZero(xmf3RotateAxis)) xmf3RotateAxis = XMFLOAT3(0.0f, 1.0f,
+		0.0f);
+		float fAngle = acos(Vector3::DotProduct(XMFLOAT3(0.0f, 1.0f, 0.0f),
+		xmf3SurfaceNormal));
+		pGameObject->Rotate(&xmf3RotateAxis, XMConvertToDegrees(fAngle));
+		}
+		*/
+		m_ppObjects[j] = pGameObject;
+		//		m_ppObjects[j]->SetOOBB(XMFLOAT3(xPosition, 0.0f, zPosition), XMFLOAT3(5.0f, 30.0f, 0.5f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+	}
+	CreateShaderVariables(pd3dDevice, pd3dCommandList);
+#endif
+#ifndef NEW_CODE
 	CHeightMapTerrain *pTerrain = (CHeightMapTerrain *)pContext;
 
 	//직육면체를 지형 표면에 그리고 지형보다 높은 위치에 일정한 간격으로 배치한다.
@@ -747,11 +913,92 @@ void CObjectsShader::BuildWallObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCo
 //		m_ppObjects[j]->SetOOBB(XMFLOAT3(xPosition, 0.0f, zPosition), XMFLOAT3(5.0f, 30.0f, 0.5f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
 	}
 	CreateShaderVariables(pd3dDevice, pd3dCommandList);
+#endif
 }
 
 void CObjectsShader::BuildBallObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList
 	*pd3dCommandList, void *pContext)
 {
+#ifdef NEW_CODE
+	CHeightMapTerrain *pTerrain = (CHeightMapTerrain *)pContext;
+
+	// 공친구들을 지형 표면에 그리고 지형보다 높은 위치에 배치한다.
+
+	float x_len = 10.0f;
+
+	float xPosition{ 0 };
+	float zPosition{ 0 };
+	float fHeight{ 0 };
+	m_nObjects = 50;
+
+	float fxPitch = 12.0f * 2.5f;
+	float fyPitch = 0;
+	float fzPitch = 12.0f * 2.5f;
+
+	m_ppObjects = new CGameObject*[m_nObjects];
+	
+	CSphereMeshIlluminated *pMesh = new CSphereMeshIlluminated(pd3dDevice, pd3dCommandList, 10.0f, 20.0f, 20.0f);
+	CRotatingObject  *pGameObject = NULL;
+
+	for (int j = 0; j < m_nObjects; j++) {
+		pGameObject = new CRotatingObject(1);
+
+		if (j == 0) {
+			pGameObject->SetMesh(0, pMesh);
+			xPosition = 0;
+			zPosition = 0;
+			pGameObject->m_dirVector = { 0.1f , 0.0f, 0.0f };
+
+			pGameObject->SetRotationAxis(XMFLOAT3(0.0f, 0.0f, 50.0f));
+			pGameObject->SetRotationSpeed(-300.0f);
+		}
+		else if (j < 51) {
+			pGameObject->SetMesh(0, pMesh);
+			//pGameObject->m_dirVector = { 0.0f , 0.0f, 0.05f };
+
+			pGameObject->m_dirVector.x = (rand() % 4 + 1) / (float)10;
+			pGameObject->m_dirVector.z = (rand() % 4 + 1) / (float)10;
+
+			pGameObject->SetRotationAxis(XMFLOAT3(50.0f, 0.0f, 0.0f));
+			pGameObject->SetRotationSpeed(-300.0f);
+
+			xPosition = rand() % 1600;
+			zPosition = rand() % 1600;
+
+			while (zPosition > 630 && zPosition < 980 && xPosition > 630 && xPosition < 980)
+				xPosition = rand() % 1600;
+			zPosition = rand() % 1600;
+		}
+
+		fHeight = pTerrain->GetHeight(xPosition, zPosition);
+		pGameObject->SetPosition(xPosition, pTerrain->GetHeight(xPosition, zPosition) + 6.0f, zPosition);
+
+		/*
+		if (y == 0)
+		{
+		//지형의 표면에 위치하는 직육면체는 지형의 기울기에 따라 방향이 다르게 배치한다. 직육면체가 위치할 지형의 법선벡터 방향과 직육면체의 y-축이 일치하도록 한다.
+		xmf3SurfaceNormal = pTerrain->GetNormal(xPosition, zPosition);
+		xmf3RotateAxis = Vector3::CrossProduct(XMFLOAT3(0.0f, 1.0f, 0.0f),
+		xmf3SurfaceNormal);
+		if (Vector3::IsZero(xmf3RotateAxis)) xmf3RotateAxis = XMFLOAT3(0.0f, 1.0f,
+		0.0f);
+		float fAngle = acos(Vector3::DotProduct(XMFLOAT3(0.0f, 1.0f, 0.0f),
+		xmf3SurfaceNormal));
+		pGameObject->Rotate(&xmf3RotateAxis, XMConvertToDegrees(fAngle));
+		}
+		*/
+
+		m_ppObjects[j] = pGameObject;
+
+		m_ppObjects[j]->m_ColidePoint.Create(10, xPosition, zPosition);
+
+		//m_ppObjects[j]->SetOOBB(XMFLOAT3(0, 0, 0), XMFLOAT3(20.0f, 20.0f, 20.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+		//m_ppObjects[j]->SetOOBB(XMFLOAT3(xPosition, pTerrain->GetHeight(xPosition, zPosition), zPosition), XMFLOAT3(20.0f, 20.0f, 20.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+	}
+
+	CreateShaderVariables(pd3dDevice, pd3dCommandList);
+#endif
+#ifndef NEW_CODE
 	CHeightMapTerrain *pTerrain = (CHeightMapTerrain *)pContext;
 
 	// 공친구들을 지형 표면에 그리고 지형보다 높은 위치에 배치한다.
@@ -829,6 +1076,7 @@ void CObjectsShader::BuildBallObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCo
 	}
 
 	CreateShaderVariables(pd3dDevice, pd3dCommandList);
+#endif
 }
 
 void CObjectsShader::ReleaseObjects()
@@ -887,7 +1135,6 @@ void CObjectsShader::DoColide(float playerX, float playerZ, bool& m_isOnInput) {
 	m_ppObjects[m_nObjects - 1]->DoColide(playerX, playerZ);
 }
 
-
 void CObjectsShader::ReleaseUploadBuffers()
 {
 	if (m_ppObjects)
@@ -942,6 +1189,22 @@ CTerrainShader::~CTerrainShader()
 
 D3D12_INPUT_LAYOUT_DESC CTerrainShader::CreateInputLayout()
 {
+#ifdef NEW_CODE
+	UINT nInputElementDescs = 2;
+	D3D12_INPUT_ELEMENT_DESC *pd3dInputElementDescs = new D3D12_INPUT_ELEMENT_DESC[nInputElementDescs];
+	
+	pd3dInputElementDescs[0] = { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,
+		D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	pd3dInputElementDescs[1] = { "NORMAL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12,
+		D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	D3D12_INPUT_LAYOUT_DESC d3dInputLayoutDesc;
+	d3dInputLayoutDesc.pInputElementDescs = pd3dInputElementDescs;
+	d3dInputLayoutDesc.NumElements = nInputElementDescs;
+	return(d3dInputLayoutDesc);
+
+#endif
+
+#ifndef NEW_CODE
 	UINT nInputElementDescs = 2;
 	D3D12_INPUT_ELEMENT_DESC *pd3dInputElementDescs = new
 		D3D12_INPUT_ELEMENT_DESC[nInputElementDescs];
@@ -953,18 +1216,36 @@ D3D12_INPUT_LAYOUT_DESC CTerrainShader::CreateInputLayout()
 	d3dInputLayoutDesc.pInputElementDescs = pd3dInputElementDescs;
 	d3dInputLayoutDesc.NumElements = nInputElementDescs;
 	return(d3dInputLayoutDesc);
+
+#endif
 }
 
 D3D12_SHADER_BYTECODE CTerrainShader::CreateVertexShader(ID3DBlob **ppd3dShaderBlob)
 {
+
+#ifdef NEW_CODE
+	return(CShader::CompileShaderFromFile(L"Shaders.hlsl", "VSLighting", "vs_5_1",
+		ppd3dShaderBlob));
+#endif
+
+#ifndef NEW_CODE
 	return(CShader::CompileShaderFromFile(L"Shaders.hlsl", "VSDiffused", "vs_5_1",
 		ppd3dShaderBlob));
+#endif
 }
+
 D3D12_SHADER_BYTECODE CTerrainShader::CreatePixelShader(ID3DBlob **ppd3dShaderBlob)
 {
+#ifdef NEW_CODE
+	return(CShader::CompileShaderFromFile(L"Shaders.hlsl", "PSLighting", "ps_5_1",
+		ppd3dShaderBlob));
+#endif
+#ifndef NEW_CODE
 	return(CShader::CompileShaderFromFile(L"Shaders.hlsl", "PSDiffused", "ps_5_1",
 		ppd3dShaderBlob));
+#endif
 }
+
 void CTerrainShader::CreateShader(ID3D12Device *pd3dDevice, ID3D12RootSignature
 	*pd3dGraphicsRootSignature)
 {

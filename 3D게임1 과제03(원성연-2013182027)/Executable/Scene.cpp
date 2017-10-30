@@ -96,9 +96,18 @@ void CScene::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList
 		17, xmf3Scale, xmf4Color);
 #else
 	//지형을 하나의 격자 메쉬(257x257)로 생성한다.
-	m_pTerrain = new CHeightMapTerrain(pd3dDevice, pd3dCommandList,
-		m_pd3dGraphicsRootSignature, _T("Terrain/MakeHeightMap.raw"), 200, 200, 200,
-		200, xmf3Scale, xmf4Color);
+	m_pTerrain = new CHeightMapTerrain(
+		pd3dDevice, 
+		pd3dCommandList,
+		m_pd3dGraphicsRootSignature, 
+		_T("Terrain/MakeHeightMap.raw"), 
+		200, 
+		200, 
+		200,
+		200, 
+		xmf3Scale, 
+		xmf4Color
+	);
 #endif
 	m_nShaders = 2;
 	m_pShaders = new CObjectsShader[m_nShaders];
@@ -209,35 +218,6 @@ void CScene::AnimateObjects(float fTimeElapsed, CPlayer& player, bool& m_isOnInp
 	//캐릭터 공 충돌
 	m_pShaders[1].DoColide(player.GetPosition().x, player.GetPosition().z);
 	
-/*
-#pragma region[ 플레이어 X 공 충돌 ]
-
-	for (int i = 0; i < m_pShaders[1].m_nObjects; i++)
-	{
-		if (m_pShaders[1].m_ppObjects[i]->m_isStatus) {
-
-			if (m_pShaders[1].m_ppObjects[i]->m_xmOOBB.Intersects(player.m_xmOOBB))
-			{
-					PlaySound(L"effect_1.wav", NULL, SND_ASYNC);
-			}
-		}
-	}
-#pragma endregion
-*/
-	/*
-#pragma region[플레이어X벽 충돌 ]
-	for (int i = 0; i < m_pShaders[0].m_nObjects; i++)
-	{
-		if (m_pShaders[0].m_ppObjects[i]->m_isStatus) {
-
-			if (m_pShaders[0].m_ppObjects[i]->m_xmOOBB.Intersects(player.m_xmOOBB))
-			{
-				PlaySound(L"effect_1.wav", NULL, SND_ASYNC);
-			}
-		}
-	}
-#pragma endregion
-*/
 	if (m_pLights)
 	{
 		m_pLights->m_pLights[1].m_xmf3Position = player.GetPosition();

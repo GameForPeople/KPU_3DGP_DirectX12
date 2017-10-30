@@ -110,16 +110,19 @@ public:
 	void ReleaseUploadBuffers();
 	virtual void SetMesh(int nIndex, CMesh *pMesh);
 	virtual void SetShader(CShader *pShader);
+	virtual void SetMaterial(CMaterial *pMaterial);
+	virtual void SetMaterial(UINT nReflection);
+
 	virtual void Animate(float fTimeElapsed, void *pContext);
 	virtual void OnPrepareRender();
 	virtual void Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera);
 
 	//상수 버퍼를 생성한다.
-	virtual void CreateShaderVariables(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList
-		*pd3dCommandList);
-	//상수 버퍼의 내용을 갱신한다.
-	virtual void UpdateShaderVariables(ID3D12GraphicsCommandList *pd3dCommandList);
-	virtual void ReleaseShaderVariables();
+	//virtual void CreateShaderVariables(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList
+	//	*pd3dCommandList);
+	////상수 버퍼의 내용을 갱신한다.
+	//virtual void UpdateShaderVariables(ID3D12GraphicsCommandList *pd3dCommandList);
+	//virtual void ReleaseShaderVariables();
 	
 	virtual void DoColide(float playerX, float playerZ) {};
 	virtual void DoColide(float playerX, float playerZ, bool m_isOnInput) {};
@@ -177,6 +180,10 @@ public:
 		*pd3dCommandList, ID3D12RootSignature *pd3dGraphicsRootSignature, LPCTSTR pFileName, int
 		nWidth, int nLength, int nBlockWidth, int nBlockLength, XMFLOAT3 xmf3Scale, XMFLOAT4
 		xmf4Color);
+	CHeightMapTerrain(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList
+		*pd3dCommandList, ID3D12RootSignature *pd3dGraphicsRootSignature, LPCTSTR pFileName, int
+		nWidth, int nLength, int nBlockWidth, int nBlockLength, XMFLOAT3 xmf3Scale, XMFLOAT3
+		xmf3Normal);
 	virtual ~CHeightMapTerrain();
 private:
 	//지형의 높이 맵으로 사용할 이미지이다.

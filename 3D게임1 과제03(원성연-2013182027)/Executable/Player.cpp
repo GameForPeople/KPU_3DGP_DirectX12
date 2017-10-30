@@ -35,17 +35,18 @@ CPlayer::~CPlayer()
 void CPlayer::CreateShaderVariables(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList
 	*pd3dCommandList)
 {
-	CGameObject::CreateShaderVariables(pd3dDevice, pd3dCommandList);
+	//CGameObject::CreateShaderVariables(pd3dDevice, pd3dCommandList);
 	if (m_pCamera) m_pCamera->CreateShaderVariables(pd3dDevice, pd3dCommandList);
 }
 void CPlayer::ReleaseShaderVariables()
 {
-	CGameObject::ReleaseShaderVariables();
+	//CGameObject::ReleaseShaderVariables();
 	if (m_pCamera) m_pCamera->ReleaseShaderVariables();
 }
 void CPlayer::UpdateShaderVariables(ID3D12GraphicsCommandList *pd3dCommandList)
 {
-	CGameObject::UpdateShaderVariables(pd3dCommandList);
+	//CGameObject::UpdateShaderVariables(pd3dCommandList);
+	if (m_pCamera) m_pCamera->UpdateShaderVariables(pd3dCommandList);
 }
 
 void CPlayer::Move(DWORD dwDirection, float fDistance, bool bUpdateVelocity)
@@ -395,14 +396,37 @@ CTerrainPlayer::CTerrainPlayer(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandLi
 	*pd3dCommandList, ID3D12RootSignature *pd3dGraphicsRootSignature, void *pContext, int
 	nMeshes) : CPlayer(nMeshes)
 {
+#ifdef NEW_CODE
+	m_pCamera = ChangeCamera(THIRD_PERSON_CAMERA, 0.0f);
+	CHeightMapTerrain *pTerrain = (CHeightMapTerrain *)pContext;
+	
+	float fHeight = pTerrain->GetHeight(pTerrain->GetWidth()*0.5f, pTerrain->GetLength()*0.5f);
+	SetPosition(XMFLOAT3(pTerrain->GetWidth()*0.5f, fHeight + 1500.0f, pTerrain->GetLength()*0.5f));
+	
+	//플레이어의 위치가 변경될 때 지형의 정보에 따라 플레이어의 위치를 변경할 수 있도록 설정한다.
+	SetPlayerUpdatedContext(pTerrain);
+	//카메라의 위치가 변경될 때 지형의 정보에 따라 카메라의 위치를 변경할 수 있도록 설정한다.
+	SetCameraUpdatedContext(pTerrain);
+	
+	CCubeMeshIlluminated *pCubeMesh = new CCubeMeshIlluminated(pd3dDevice, pd3dCommandList,
+		4.0f, 12.0f, 4.0f);
+	SetMesh(0, pCubeMesh);
+
+	CreateShaderVariables(pd3dDevice, pd3dCommandList);
+
+	//플레이어를 렌더링할 셰이더를 생성한다.
+	CPlayerShader *pShader = new CPlayerShader();
+	pShader->CreateShader(pd3dDevice, pd3dGraphicsRootSignature);
+	pShader->CreateShaderVariables(pd3dDevice, pd3dCommandList);
+	SetShader(pShader);
+#endif
+#ifndef NEW_CODE
 	m_pCamera = ChangeCamera(THIRD_PERSON_CAMERA, 0.0f);
 	CHeightMapTerrain *pTerrain = (CHeightMapTerrain *)pContext;
 	//플레이어의 위치를 지형의 가운데(y-축 좌표는 지형의 높이보다 1500 높게)로 설정한다. 플레이어 위치 벡터의 y-
 	//좌표가 지형의 높이보다 크고 중력이 작용하도록 플레이어를 설정하였으므로 플레이어는 점차적으로 하강하게 된다.
-		float fHeight = pTerrain->GetHeight(pTerrain->GetWidth()*0.5f,
-			pTerrain->GetLength()*0.5f);
-	SetPosition(XMFLOAT3(pTerrain->GetWidth()*0.5f, fHeight + 1500.0f,
-		pTerrain->GetLength()*0.5f));
+		float fHeight = pTerrain->GetHeight(pTerrain->GetWidth()*0.5f, 			pTerrain->GetLength()*0.5f);
+	SetPosition(XMFLOAT3(pTerrain->GetWidth()*0.5f, fHeight + 1500.0f, 		pTerrain->GetLength()*0.5f));
 	//플레이어의 위치가 변경될 때 지형의 정보에 따라 플레이어의 위치를 변경할 수 있도록 설정한다.
 	SetPlayerUpdatedContext(pTerrain);
 	//카메라의 위치가 변경될 때 지형의 정보에 따라 카메라의 위치를 변경할 수 있도록 설정한다.
@@ -415,6 +439,7 @@ CTerrainPlayer::CTerrainPlayer(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandLi
 	pShader->CreateShader(pd3dDevice, pd3dGraphicsRootSignature);
 	SetShader(pShader);
 	CreateShaderVariables(pd3dDevice, pd3dCommandList);
+#endif
 }
 CTerrainPlayer::~CTerrainPlayer()
 {}
