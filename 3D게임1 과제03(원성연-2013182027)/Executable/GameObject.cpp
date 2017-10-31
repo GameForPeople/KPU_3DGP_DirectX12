@@ -159,7 +159,7 @@ void CGameObject::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pC
 	//게임 객체가 카메라에 보이면 렌더링한다.-> 어케암?
 	if (IsVisible(pCamera))
 	{
-		UpdateShaderVariables(pd3dCommandList);
+//		UpdateShaderVariables(pd3dCommandList);
 		if (m_pShader) m_pShader->Render(pd3dCommandList, pCamera);
 		//게임 객체가 포함하는 모든 메쉬를 렌더링한다.~~~~~~~~~~~~~~~~~
 		if (m_ppMeshes)
