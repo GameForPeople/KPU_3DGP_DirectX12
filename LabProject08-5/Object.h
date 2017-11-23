@@ -208,6 +208,34 @@ public:
 	virtual void Animate(float fTimeElapsed);
 };
 
+#ifdef NEW_CODE_9
+class CGrassObject : public CGameObject
+{
+public:
+	CGrassObject(int nMeshes = 1);
+	virtual ~CGrassObject();
+
+private:
+	//XMFLOAT3					m_xmf3RevolutionAxis;
+	//float						m_fRevolutionSpeed;
+	XMFLOAT3					m_xmf3RotationAxis;
+	float						m_fRotationSpeed;
+
+	int							m_rotatePower;
+	int							m_rotateCount;
+	int							m_rotateDir;
+
+public:
+	//void SetRevolutionSpeed(float fRevolutionSpeed) { m_fRevolutionSpeed = fRevolutionSpeed; }
+	//void SetRevolutionAxis(XMFLOAT3 xmf3RevolutionAxis) { m_xmf3RevolutionAxis = xmf3RevolutionAxis; }
+	void SetRotationSpeed(float fRotationSpeed) { m_fRotationSpeed = fRotationSpeed; }
+	void SetRotationAxis(XMFLOAT3 xmf3RotationAxis) { m_xmf3RotationAxis = xmf3RotationAxis; }
+	void SetRotatePower(int inputPower) { m_rotatePower = inputPower; }
+
+	virtual void Animate(float fTimeElapsed, CCamera *pCamera);
+};
+#endif
+
 #ifdef NEW_CODE_3
 
 class CBillboardObject : public CGameObject {

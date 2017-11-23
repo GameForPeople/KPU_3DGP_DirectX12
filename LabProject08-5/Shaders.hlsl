@@ -1,6 +1,9 @@
 //#define _WITH_CONSTANT_BUFFER_SYNTAX
 #define NEW_CODE_1 //-->이거하면 스카이박스 안나옴;; //이제 잘나옴!!!!!!!히히
 #define NEW_CODE_2 //--> 알파값을 검색하여 0인 친구들을 삭제해주는 작업을 할거야!
+#define NEW_CODE_9 //--> 본코드 9번놈에서 정의된 짓을 할꺼야! --> 텍스쳐 어레이 인자2로 늘리고, 포지션으로 거짓말할꺼야..어 아니면 받은 인자개수알수있다면??
+#define NEW_CODE_10//---> 기존의 포지션이 아닌 UV좌표를 활용해서 이를 구분
+
 #ifdef _WITH_CONSTANT_BUFFER_SYNTAX
 struct CB_PLAYER_INFO
 {
@@ -96,7 +99,11 @@ float4 PSPlayer(VS_DIFFUSED_OUTPUT input) : SV_TARGET
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-Texture2D gtxtTextures[6] : register(t0);
+#ifdef NEW_CODE_9
+Texture2D gtxtTextures[2] : register(t0);
+#else
+Texture2D gtxtTextures[1] : register(t0);
+#endif
 
 SamplerState gWrapSamplerState : register(s0);
 SamplerState gClampSamplerState : register(s1);
@@ -111,15 +118,38 @@ struct VS_TEXTURED_OUTPUT
 {
 	float4 position : SV_POSITION;
 	float2 uv : TEXCOORD;
+   
+    #ifdef NEW_CODE_9
+    bool isGrass : GRASS;
+    #endif
 };
 
 VS_TEXTURED_OUTPUT VSTextured(VS_TEXTURED_INPUT input)
 {
 	VS_TEXTURED_OUTPUT output;
 
+	#ifdef NEW_CODE_10
+    if (input.uv.x >= 2.0f || input.uv.y >= 2.0f)
+    {
+        output.isGrass = true;
+        input.uv.x -= 2.0f;
+        input.uv.y -= 2.0f;
+    }
+    else 
+        output.isGrass = false;
+    #else // NEW_CODE_9
+    float4 bufferPos = mul(float4(input.position, 1.0f), gmtxWorld);
+    if (bufferPos.x >= 600 && bufferPos.x <= 1400)
+        output.isGrass = true;
+    else 
+        output.isGrass = false;
+    #endif
+
 #ifdef _WITH_CONSTANT_BUFFER_SYNTAX
 	output.position = mul(mul(mul(float4(input.position, 1.0f), gcbGameObjectInfo.mtxWorld), gcbCameraInfo.mtxView), gcbCameraInfo.mtxProjection);
 #else
+    //#ifdef NEW_CODE_9
+    //output.position = mul(mul(bufferPos, gmtxView), gmtxProjection);
 	output.position = mul(mul(mul(float4(input.position, 1.0f), gmtxWorld), gmtxView), gmtxProjection);
 #endif
 	output.uv = input.uv;
@@ -144,15 +174,22 @@ float4 PSTextured(VS_TEXTURED_OUTPUT input, uint nPrimitiveID : SV_PrimitiveID) 
 	else
 		cColor = gtxtTextures[5].Sample(gWrapSamplerState, input.uv);
 */
-	float4 cColor = gtxtTextures[NonUniformResourceIndex(nPrimitiveID/2)].Sample(gWrapSamplerState, input.uv);
+	#ifdef NEW_CODE_9
+    float4 cColor;
+    if (input.isGrass == true)
+        cColor = gtxtTextures[NonUniformResourceIndex((nPrimitiveID + 2) / 2)].Sample(gWrapSamplerState, input.uv);
+    else
+        cColor = gtxtTextures[NonUniformResourceIndex(nPrimitiveID/2)].Sample(gWrapSamplerState, input.uv);
+    #else
+    float4 cColor = gtxtTextures[NonUniformResourceIndex(nPrimitiveID/2)].Sample(gWrapSamplerState, input.uv);
+    #endif
 
     
 #ifdef NEW_CODE_2
   
-
-    if (cColor.a <= 0.3f)
+    if (cColor.a <= 0.9f)
     {
-       // cColor.g = 0;
+       // cColor.g = 0; //? 이새낑 뭔데
       clip(-1);
 
       return (cColor);
@@ -252,4 +289,3 @@ float4 PSSkyBox(VS_TEXTURED_OUTPUT input) : SV_TARGET
 
 	return(cColor);
 }
-

@@ -122,6 +122,10 @@ public:
 	virtual void ReleaseUploadBuffers();
 
 	virtual void Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera);
+	
+#ifdef NEW_CODE_9
+	virtual D3D12_RASTERIZER_DESC CreateRasterizerState();
+#endif
 
 protected:
 	CGameObject						**m_ppObjects = 0;

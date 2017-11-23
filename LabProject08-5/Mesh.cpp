@@ -172,7 +172,7 @@ CCubeMeshTextured::~CCubeMeshTextured()
 
 #ifdef NEW_CODE_7
 
-CFaceMeshTextured::CFaceMeshTextured(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, float fWidth, float fHeight) : CMesh(pd3dDevice, pd3dCommandList)
+CFaceMeshTextured::CFaceMeshTextured(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, float fWidth, float fHeight, int texIndex) : CMesh(pd3dDevice, pd3dCommandList)
 {
 	m_nVertices = 6;
 	m_nStride = sizeof(CTexturedVertex);
@@ -185,13 +185,14 @@ CFaceMeshTextured::CFaceMeshTextured(ID3D12Device *pd3dDevice, ID3D12GraphicsCom
 	CTexturedVertex pVertices[6];
 	int i = 0;
 
-	pVertices[i++] = CTexturedVertex(XMFLOAT3(-fx, -fy, 0), XMFLOAT2(0.0f, 0.0f));
-	pVertices[i++] = CTexturedVertex(XMFLOAT3(+fx, -fy, 0), XMFLOAT2(1.0f, 0.0f));
-	pVertices[i++] = CTexturedVertex(XMFLOAT3(+fx, +fy, 0), XMFLOAT2(1.0f, 1.0f));
+	//NEW_COE_10
+	pVertices[i++] = CTexturedVertex(XMFLOAT3(-fx, -fy, 0), XMFLOAT2(0.0f + texIndex * 2.0f, 0.0f + texIndex * 2.0f));
+	pVertices[i++] = CTexturedVertex(XMFLOAT3(+fx, -fy, 0), XMFLOAT2(1.0f + texIndex * 2.0f, 0.0f + texIndex * 2.0f));
+	pVertices[i++] = CTexturedVertex(XMFLOAT3(+fx, +fy, 0), XMFLOAT2(1.0f + texIndex * 2.0f, 1.0f + texIndex * 2.0f));
 
-	pVertices[i++] = CTexturedVertex(XMFLOAT3(-fx, -fy, 0), XMFLOAT2(0.0f, 0.0f));
-	pVertices[i++] = CTexturedVertex(XMFLOAT3(+fx, +fy, 0), XMFLOAT2(1.0f, 1.0f));
-	pVertices[i++] = CTexturedVertex(XMFLOAT3(-fx, +fy, 0), XMFLOAT2(0.0f, 1.0f));
+	pVertices[i++] = CTexturedVertex(XMFLOAT3(-fx, -fy, 0), XMFLOAT2(0.0f + texIndex * 2.0f, 0.0f + texIndex * 2.0f));
+	pVertices[i++] = CTexturedVertex(XMFLOAT3(+fx, +fy, 0), XMFLOAT2(1.0f + texIndex * 2.0f, 1.0f + texIndex * 2.0f));
+	pVertices[i++] = CTexturedVertex(XMFLOAT3(-fx, +fy, 0), XMFLOAT2(0.0f + texIndex * 2.0f, 1.0f + texIndex * 2.0f));
 	
 	m_pd3dVertexBuffer = CreateBufferResource(pd3dDevice, pd3dCommandList, pVertices, m_nStride * m_nVertices, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, &m_pd3dVertexUploadBuffer);
 

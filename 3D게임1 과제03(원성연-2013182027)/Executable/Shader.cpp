@@ -761,7 +761,7 @@ void CObjectsShader::BuildBallObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCo
 	float xPosition{ 0 };
 	float zPosition{ 0 };
 	float fHeight{ 0 };
-	m_nObjects = 50;
+	m_nObjects = 100;
 
 	float fxPitch = 12.0f * 2.5f;
 	float fyPitch = 0;
@@ -784,7 +784,7 @@ void CObjectsShader::BuildBallObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCo
 			pGameObject->SetRotationAxis(XMFLOAT3(0.0f, 0.0f, 50.0f));
 			pGameObject->SetRotationSpeed(-300.0f);
 		}
-		else if (j < 51) {
+		else if (j < 100) {
 			pGameObject->SetMesh(0, pMesh);
 			//pGameObject->m_dirVector = { 0.0f , 0.0f, 0.05f };
 

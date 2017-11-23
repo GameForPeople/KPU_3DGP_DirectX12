@@ -83,6 +83,31 @@ D3D12_RASTERIZER_DESC CShader::CreateRasterizerState()
 	return(d3dRasterizerDesc);
 }
 
+#ifdef NEW_CODE_9
+
+D3D12_RASTERIZER_DESC CObjectsShader::CreateRasterizerState()
+{
+	D3D12_RASTERIZER_DESC d3dRasterizerDesc;
+	::ZeroMemory(&d3dRasterizerDesc, sizeof(D3D12_RASTERIZER_DESC));
+	d3dRasterizerDesc.FillMode = D3D12_FILL_MODE_SOLID;
+	d3dRasterizerDesc.CullMode = D3D12_CULL_MODE_NONE;
+	//d3dRasterizerDesc.CullMode = D3D12_CULL_MODE_BACK;
+
+	d3dRasterizerDesc.FrontCounterClockwise = FALSE;
+	d3dRasterizerDesc.DepthBias = 0;
+	d3dRasterizerDesc.DepthBiasClamp = 0.0f;
+	d3dRasterizerDesc.SlopeScaledDepthBias = 0.0f;
+	d3dRasterizerDesc.DepthClipEnable = TRUE;
+	d3dRasterizerDesc.MultisampleEnable = FALSE;
+	d3dRasterizerDesc.AntialiasedLineEnable = FALSE;
+	d3dRasterizerDesc.ForcedSampleCount = 0;
+	d3dRasterizerDesc.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
+
+	return(d3dRasterizerDesc);
+}
+
+#endif
+
 D3D12_DEPTH_STENCIL_DESC CShader::CreateDepthStencilState()
 {
 	D3D12_DEPTH_STENCIL_DESC d3dDepthStencilDesc;
@@ -428,36 +453,34 @@ void CObjectsShader::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsComman
 	m_nObjects = (xObjects * yObjects * zObjects);
 #endif
 
-#ifdef NEW_CODE_7
-	CTexture *pTexture = new CTexture(1, RESOURCE_TEXTURE2D_ARRAY, 0);
+#ifdef NEW_CODE_9
+	//m_nObjects = 1500;
+	m_nObjects = 30000;
+
+#endif
+
+#ifdef NEW_CODE_9
+	CTexture *pTexture = new CTexture(2, RESOURCE_TEXTURE2D_ARRAY, 0);
 	pTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Assets/Image/Trees/Trees.dds", 0);
+	pTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Assets/Image/Grasses/Grass.dds", 1);
 
 	UINT ncbElementBytes = ((sizeof(CB_GAMEOBJECT_INFO) + 255) & ~255);
 
-	CreateCbvAndSrvDescriptorHeaps(pd3dDevice, pd3dCommandList, m_nObjects, 1);
+	CreateCbvAndSrvDescriptorHeaps(pd3dDevice, pd3dCommandList, m_nObjects, 2);
 	CreateShaderVariables(pd3dDevice, pd3dCommandList);
 	CreateConstantBufferViews(pd3dDevice, pd3dCommandList, m_nObjects, m_pd3dcbGameObjects, ncbElementBytes);
 	CreateShaderResourceViews(pd3dDevice, pd3dCommandList, pTexture, 3, false);
 
 #else
-	CTexture *pTexture = new CTexture(6, RESOURCE_TEXTURE2D_ARRAY, 0);
+	//NEW_CODE_7
+	CTexture *pTexture = new CTexture(1, RESOURCE_TEXTURE2D_ARRAY, 0);
 	pTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Assets/Image/Trees/Trees.dds", 0);
-	pTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Assets/Image/Trees/Trees.dds", 1);
-	pTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Assets/Image/Trees/Trees.dds", 2);
-	pTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Assets/Image/Trees/Trees.dds", 3);
-	pTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Assets/Image/Trees/Trees.dds", 4);
-	pTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Assets/Image/Trees/Trees.dds", 5);
 
-	//pTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"../Assets/Image/Miscellaneous/Stone.dds", 0);
-	//pTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"../Assets/Image/Miscellaneous/rocks2.dds", 1);
-	//pTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"../Assets/Image/Miscellaneous/brick02.dds", 2);
-	//pTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"../Assets/Image/Miscellaneous/brick01.dds", 3);
-	//pTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"../Assets/Image/Miscellaneous/Stone.dds", 4);
-	//pTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"../Assets/Image/Miscellaneous/brick01.dds", 5);
+	//pTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Assets/Image/Grasses/Grass.dds", 0);
 
 	UINT ncbElementBytes = ((sizeof(CB_GAMEOBJECT_INFO) + 255) & ~255);
 
-	CreateCbvAndSrvDescriptorHeaps(pd3dDevice, pd3dCommandList, m_nObjects, 6);
+	CreateCbvAndSrvDescriptorHeaps(pd3dDevice, pd3dCommandList, m_nObjects, 1);
 	CreateShaderVariables(pd3dDevice, pd3dCommandList);
 	CreateConstantBufferViews(pd3dDevice, pd3dCommandList, m_nObjects, m_pd3dcbGameObjects, ncbElementBytes);
 	CreateShaderResourceViews(pd3dDevice, pd3dCommandList, pTexture, 3, false);
@@ -472,34 +495,97 @@ void CObjectsShader::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsComman
 #endif
 
 #ifdef NEW_CODE_7
-	CFaceMeshTextured *pCubeMesh = new CFaceMeshTextured(pd3dDevice, pd3dCommandList, 50.0f, 50.0f);
+	CFaceMeshTextured *pFaceMesh = new CFaceMeshTextured(pd3dDevice, pd3dCommandList, 50.0f, 50.0f, 0);
+	CFaceMeshTextured *pGrassMesh = new CFaceMeshTextured(pd3dDevice, pd3dCommandList, 20.0f, 30.0f, 1);
+
 #else 
 	CCubeMeshTextured *pCubeMesh = new CCubeMeshTextured(pd3dDevice, pd3dCommandList, 50.0f, 50.0f, 0.1f);
 	//CCubeMeshTextured *pCubeMesh = new CCubeMeshTextured(pd3dDevice, pd3dCommandList, 12.0f, 12.0f, 12.0f);
 #endif
 
 	m_ppObjects = new CGameObject*[m_nObjects];
-
 	XMFLOAT3 xmf3RotateAxis, xmf3SurfaceNormal;
-	
-#ifdef NEW_CODE_3
+
+#ifdef NEW_CODE_9
 	CBillboardObject *pRotatingObject = NULL;
-#else
-	CRotatingObject *pRotatingObject = NULL;
+	CGrassObject *pGrassObject = NULL;
+#else	//NEW_CODE_3
+	CBillboardObject *pRotatingObject = NULL;
+	//CRotatingObject *pRotatingObject = NULL;
 #endif
 
 	for (int i = 0; i < m_nObjects; i)
 	{
-#ifdef NEW_CODE_3
-				pRotatingObject = new CBillboardObject(1);
-#else
-				pRotatingObject = new CRotatingObject(1);
+
+#ifdef NEW_CODE_9
+		if (i < 400) {
+			pRotatingObject = new CBillboardObject(1);
+			pRotatingObject->SetMesh(0, pFaceMesh);
+		}
+		else {
+			pGrassObject = new CGrassObject(1);
+			pGrassObject->SetMesh(0, pGrassMesh);
+		}
+#else //NEW_CODE_3
+		pRotatingObject = new CBillboardObject(1);
 #endif
-				pRotatingObject->SetMesh(0, pCubeMesh);
+
 #ifndef _WITH_BATCH_MATERIAL
-				pRotatingObject->SetMaterial(pCubeMaterial);
+		pRotatingObject->SetMaterial(pCubeMaterial);
 #endif
-#ifdef NEW_CODE_8
+
+#ifdef NEW_CODE_9
+		float xPosition;
+		float zPosition;
+
+		if (i < 100) {
+			xPosition = (i % 10) * 50;
+			zPosition = (i / 10) * 50;
+		}
+		else if (i < 200) {
+			xPosition = ((i - 100) % 10) * 50 + 1550;
+			zPosition = ((i - 100) / 10) * 50 + 1550;
+		}
+		else if (i < 300) {
+			xPosition = ((i - 200) % 10) * 50 + 1550;
+			zPosition = ((i - 200) / 10) * 50;
+		}
+		else if (i < 400) {
+			xPosition = ((i - 300) % 10) * 50;
+			zPosition = ((i - 300) / 10) * 50 + 1500;
+		}
+		else if (i < (m_nObjects - 400) / 2 + 400){
+			xPosition = rand() % 2000;
+			zPosition = rand() % 900 + 600;
+			//xPosition = rand() % 200 + 900;
+			//zPosition = rand() % 200 + 900;
+		}
+		else if (i < m_nObjects) {
+			xPosition = rand() % 900 + 600;
+			zPosition = rand() % 2000;
+			//xPosition = rand() % 200 + 900;
+			//zPosition = rand() % 200 + 900;
+		}
+
+		float fHeight = pTerrain->GetHeight(xPosition, zPosition);
+		if (i < 400) {
+			pRotatingObject->SetPosition(xPosition, fHeight + 25.0f, zPosition);
+
+			pRotatingObject->SetCbvGPUDescriptorHandlePtr(m_d3dCbvGPUDescriptorStartHandle.ptr + (::gnCbvSrvDescriptorIncrementSize * i));
+			m_ppObjects[i++] = pRotatingObject;
+		}
+		else {
+			pGrassObject->SetPosition(xPosition, fHeight, zPosition);
+			pGrassObject->Rotate((0.0f, 1.0f, 0.0f), (float)(rand() % 360));
+			pGrassObject->SetRotationAxis(XMFLOAT3( 1.0f, 0.0f, 0.0f));
+			pGrassObject->SetRotationSpeed(4.0f * (i % 4) + 12.0f);
+			pGrassObject->SetRotatePower(((i % 4) + 1) * 14 );
+
+			pGrassObject->SetCbvGPUDescriptorHandlePtr(m_d3dCbvGPUDescriptorStartHandle.ptr + (::gnCbvSrvDescriptorIncrementSize * i));
+			m_ppObjects[i++] = pGrassObject;
+		}
+
+#else	//NEW_CODE_8
 				float xPosition;
 				float zPosition;
 

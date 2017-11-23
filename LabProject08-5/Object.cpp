@@ -372,6 +372,40 @@ void CRevolvingObject::Animate(float fTimeElapsed)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
+#ifdef NEW_CODE_9
+CGrassObject::CGrassObject(int nMeshes)
+{
+	//m_xmf3RevolutionAxis = XMFLOAT3(1.0f, 0.0f, 0.0f);
+	//m_fRevolutionSpeed = 0.0f;
+	m_xmf3RotationAxis = XMFLOAT3(1.0f, 0.0f, 0.0f);
+	m_fRotationSpeed = 15.0f;
+
+	m_rotateCount = 0;
+	m_rotateDir = 1;
+}
+
+CGrassObject::~CGrassObject()
+{
+}
+
+void CGrassObject::Animate(float fTimeElapsed, CCamera *pCamera)
+{
+	CGameObject::Rotate(&m_xmf3RotationAxis, m_rotateDir * m_fRotationSpeed * fTimeElapsed);
+	//XMMATRIX mtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_xmf3RevolutionAxis), XMConvertToRadians(m_fRevolutionSpeed * fTimeElapsed));
+	//m_xmf4x4World = Matrix4x4::Multiply(m_xmf4x4World, mtxRotate);
+
+	if (m_rotateCount == m_rotatePower || m_rotateCount == -m_rotatePower) {
+		m_rotateDir *= -1;
+	}
+
+	if(m_rotateDir == 1)
+		m_rotateCount++;
+	else if (m_rotateDir == -1)
+		m_rotateCount--;
+}
+
+#endif
+////////////////////////////////////////////////////////////////////////////////////////////////
 #ifdef NEW_CODE_3
 CBillboardObject::CBillboardObject(int nMeshes)
 {

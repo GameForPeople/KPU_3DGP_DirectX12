@@ -172,7 +172,7 @@ public:
 class CFaceMeshTextured : public CMesh
 {
 public:
-	CFaceMeshTextured(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, float fWidth = 2.0f, float fHeight = 2.0f);
+	CFaceMeshTextured(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, float fWidth = 2.0f, float fHeight = 2.0f, int texIndex = 0);
 	virtual ~CFaceMeshTextured();
 };
 
