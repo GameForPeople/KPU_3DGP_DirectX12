@@ -400,7 +400,7 @@ CObjectsShader::~CObjectsShader()
 void CObjectsShader::CreateShaderVariables(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList)
 {
 	UINT ncbElementBytes = ((sizeof(CB_GAMEOBJECT_INFO) + 255) & ~255); //256의 배수
-	m_pd3dcbGameObjects = ::CreateBufferResource(pd3dDevice, pd3dCommandList, NULL, ncbElementBytes * m_nObjects, D3D12_HEAP_TYPE_UPLOAD, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, NULL);
+	m_pd3dcbGameObjects = ::CreateBufferResource(pd3dDevice, pd3dCommandList, NULL, ncbElementBytes *(m_nObjects + m_nObjects2), D3D12_HEAP_TYPE_UPLOAD, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, NULL);
 
 	m_pd3dcbGameObjects->Map(0, NULL, (void **)&m_pcbMappedGameObjects);
 }
@@ -412,6 +412,11 @@ void CObjectsShader::UpdateShaderVariables(ID3D12GraphicsCommandList *pd3dComman
 	{
 		CB_GAMEOBJECT_INFO *pbMappedcbGameObject = (CB_GAMEOBJECT_INFO *)((UINT8 *)m_pcbMappedGameObjects + (j * ncbElementBytes));
 		XMStoreFloat4x4(&pbMappedcbGameObject->m_xmf4x4World, XMMatrixTranspose(XMLoadFloat4x4(&m_ppObjects[j]->m_xmf4x4World)));
+	}
+	for (int j = 0; j < m_nObjects2; j++)
+	{
+		CB_GAMEOBJECT_INFO *pbMappedcbGameObject = (CB_GAMEOBJECT_INFO *)((UINT8 *)m_pcbMappedGameObjects + ((j + m_nObjects) * ncbElementBytes));
+		XMStoreFloat4x4(&pbMappedcbGameObject->m_xmf4x4World, XMMatrixTranspose(XMLoadFloat4x4(&m_ppObjects2[j]->m_xmf4x4World)));
 	}
 }
 
@@ -721,6 +726,11 @@ void CObjectsShader::ReleaseObjects()
 		for (int j = 0; j < m_nObjects; j++) if (m_ppObjects[j]) delete m_ppObjects[j];
 		delete[] m_ppObjects;
 	}
+	if (m_ppObjects2)
+	{
+		for (int j = 0; j < m_nObjects2; j++) if (m_ppObjects2[j]) delete m_ppObjects2[j];
+		delete[] m_ppObjects2;
+	}
 
 #ifdef _WITH_BATCH_MATERIAL
 	if (m_pMaterial) delete m_pMaterial;
@@ -733,6 +743,11 @@ void CObjectsShader::AnimateObjects(float fTimeElapsed, CCamera *pCamera)
 	{
 		m_ppObjects[j]->Animate(fTimeElapsed, pCamera);
 	}
+
+	for (int j = 0; j < m_nObjects2; j++)
+	{
+		m_ppObjects2[j]->Animate(fTimeElapsed, pCamera);
+	}
 }
 
 void CObjectsShader::ReleaseUploadBuffers()
@@ -740,6 +755,11 @@ void CObjectsShader::ReleaseUploadBuffers()
 	if (m_ppObjects)
 	{
 		for (int j = 0; j < m_nObjects; j++) if (m_ppObjects[j]) m_ppObjects[j]->ReleaseUploadBuffers();
+	}
+
+	if (m_ppObjects2)
+	{
+		for (int j = 0; j < m_nObjects2; j++) if (m_ppObjects2[j]) m_ppObjects2[j]->ReleaseUploadBuffers();
 	}
 
 #ifdef _WITH_BATCH_MATERIAL
@@ -758,6 +778,10 @@ void CObjectsShader::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera 
 	for (int j = 0; j < m_nObjects; j++)
 	{
 		if (m_ppObjects[j]) m_ppObjects[j]->Render(pd3dCommandList, pCamera);
+	}
+	for (int j = 0; j < m_nObjects2; j++)
+	{
+		if (m_ppObjects2[j]) m_ppObjects2[j]->Render(pd3dCommandList, pCamera);
 	}
 }
 
@@ -843,7 +867,7 @@ void CInstancingShader::CreateShaderVariables(ID3D12Device *pd3dDevice,
 
 	//인스턴스 정보를 저장할 정점 버퍼를 업로드 힙 유형으로 생성한다.
 	m_pd3dcbGameObjects = ::CreateBufferResource(pd3dDevice, pd3dCommandList, NULL,
-		sizeof(VS_VB_INSTANCE) * m_nObjects, D3D12_HEAP_TYPE_UPLOAD,
+		sizeof(VS_VB_INSTANCE) * (m_nObjects + m_nObjects2), D3D12_HEAP_TYPE_UPLOAD,
 		D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, NULL);
 	//정점 버퍼(업로드 힙)에 대한 포인터를 저장한다.
 	m_pd3dcbGameObjects->Map(0, NULL, (void **)& m_pcbMappedGameObjects);
@@ -851,7 +875,7 @@ void CInstancingShader::CreateShaderVariables(ID3D12Device *pd3dDevice,
 	m_d3dInstancingBufferView.BufferLocation =
 		m_pd3dcbGameObjects->GetGPUVirtualAddress();
 	m_d3dInstancingBufferView.StrideInBytes = sizeof(VS_VB_INSTANCE);
-	m_d3dInstancingBufferView.SizeInBytes = sizeof(VS_VB_INSTANCE) * m_nObjects;
+	m_d3dInstancingBufferView.SizeInBytes = sizeof(VS_VB_INSTANCE) * (m_nObjects + m_nObjects2);
 }
 
 void CInstancingShader::ReleaseShaderVariables()
@@ -875,6 +899,13 @@ void CInstancingShader::UpdateShaderVariables(ID3D12GraphicsCommandList
 		//	XMFLOAT2(0.0f, 0.0f, 0.5f, 0.0f); 여기 원래 텍스쳐 코드넘겨줘야하는데 안넘겨줘도되네 ..ㅎㅎㅎ왤까?
 		XMStoreFloat4x4(&m_pcbMappedGameObjects[j].m_xmf4x4Transform,
 			XMMatrixTranspose(XMLoadFloat4x4(&m_ppObjects[j]->m_xmf4x4World)));
+	}
+	for (int j = 0; j < m_nObjects2; j++)
+	{
+		//m_pcbMappedGameObjects[j].m_xmf2TexCoord = (j % 2) ? XMFLOAT2(0.5f, 0.0f, 0.0f, 0.0f) :
+		//	XMFLOAT2(0.0f, 0.0f, 0.5f, 0.0f); 여기 원래 텍스쳐 코드넘겨줘야하는데 안넘겨줘도되네 ..ㅎㅎㅎ왤까?
+		XMStoreFloat4x4(&m_pcbMappedGameObjects[m_nObjects + j].m_xmf4x4Transform,
+			XMMatrixTranspose(XMLoadFloat4x4(&m_ppObjects2[j]->m_xmf4x4World)));
 	}
 }
 
@@ -938,7 +969,7 @@ void CInstancingShader::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCom
 #ifdef NEW_CODE_9
 	//m_nObjects = 1500;
 	m_nObjects = 3000;
-	m_nObjects2 = 0; // 27000;
+	m_nObjects2 = 27000; //0;
 
 #endif
 
@@ -949,9 +980,9 @@ void CInstancingShader::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCom
 
 	UINT ncbElementBytes = ((sizeof(CB_GAMEOBJECT_INFO) + 255) & ~255);
 
-	CreateCbvAndSrvDescriptorHeaps(pd3dDevice, pd3dCommandList, m_nObjects, 2);
+	CreateCbvAndSrvDescriptorHeaps(pd3dDevice, pd3dCommandList, m_nObjects + m_nObjects2, 2);
 	CreateShaderVariables(pd3dDevice, pd3dCommandList);
-	CreateConstantBufferViews(pd3dDevice, pd3dCommandList, m_nObjects, m_pd3dcbGameObjects, ncbElementBytes);
+	CreateConstantBufferViews(pd3dDevice, pd3dCommandList, m_nObjects + m_nObjects2, m_pd3dcbGameObjects, ncbElementBytes);
 	CreateShaderResourceViews(pd3dDevice, pd3dCommandList, pTexture, 3, false);
 
 #else
@@ -988,7 +1019,7 @@ void CInstancingShader::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCom
 
 	m_ppObjects = new CGameObject*[m_nObjects];
 	//DIS
-	//m_ppObjects2 = new CGameObject*[m_nObjects2];
+	m_ppObjects2 = new CGameObject*[m_nObjects2];
 
 	XMFLOAT3 xmf3RotateAxis, xmf3SurfaceNormal;
 
@@ -1131,8 +1162,29 @@ for (int i = 0; i < m_nObjects; i) {
 		pRotatingObject->SetCbvGPUDescriptorHandlePtr(m_d3dCbvGPUDescriptorStartHandle.ptr + (::gnCbvSrvDescriptorIncrementSize * i));
 		m_ppObjects[i++] = pRotatingObject;
 	}
+
+for (int i = 0; i < m_nObjects2; i) {
+	pGrassObject = new CGrassObject(1);
+
+#ifndef _WITH_BATCH_MATERIAL
+	pRotatingObject->SetMaterial(pCubeMaterial);
+#endif
+	float xPosition = rand() % 2000;
+	float zPosition = rand() % 2000;
+
+	float fHeight = pTerrain->GetHeight(xPosition, zPosition);
+	pGrassObject->SetPosition(xPosition, fHeight, zPosition);
+	pGrassObject->Rotate((0.0f, 1.0f, 0.0f), (float)(rand() % 360));
+	pGrassObject->SetRotationAxis(XMFLOAT3(1.0f, 0.0f, 0.0f));
+	pGrassObject->SetRotationSpeed(4.0f * (i % 4) + 12.0f);
+	pGrassObject->SetRotatePower(((i % 4) + 1) * 14);
+
+	pGrassObject->SetCbvGPUDescriptorHandlePtr(m_d3dCbvGPUDescriptorStartHandle.ptr + (::gnCbvSrvDescriptorIncrementSize * i));
+	m_ppObjects2[i++] = pGrassObject;
+}
+
 	m_ppObjects[0]->SetMesh(0, pFaceMesh);
-	//m_ppObjects2[0]->SetMesh(0, pGrassMesh);
+	m_ppObjects2[0]->SetMesh(0, pGrassMesh);
 
 	//pRotatingObject->SetMesh(0, pFaceMesh);
 	//pGrassObject->SetMesh(0, pGrassMesh);
@@ -1148,8 +1200,8 @@ void CInstancingShader::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCame
 	//모든 게임 객체의 인스턴싱 데이터를 버퍼에 저장한다.
 	UpdateShaderVariables(pd3dCommandList);
 	//하나의 정점 데이터를 사용하여 모든 게임 객체(인스턴스)들을 렌더링한다.
-	m_ppObjects[0]->Render(pd3dCommandList, pCamera, 400, m_d3dInstancingBufferView);
-	m_ppObjects[400]->Render(pd3dCommandList, pCamera, m_nObjects, m_d3dInstancingBufferView);
+	m_ppObjects[0]->Render(pd3dCommandList, pCamera, m_nObjects, m_d3dInstancingBufferView);
+	m_ppObjects2[0]->Render(pd3dCommandList, pCamera, m_nObjects2, m_d3dInstancingBufferView);
 }
 
 #endif
