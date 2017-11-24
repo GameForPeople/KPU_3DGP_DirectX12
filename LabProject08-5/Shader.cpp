@@ -937,7 +937,8 @@ void CInstancingShader::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCom
 
 #ifdef NEW_CODE_9
 	//m_nObjects = 1500;
-	m_nObjects = 30000;
+	m_nObjects = 3000;
+	m_nObjects2 = 0; // 27000;
 
 #endif
 
@@ -986,6 +987,9 @@ void CInstancingShader::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCom
 #endif
 
 	m_ppObjects = new CGameObject*[m_nObjects];
+	//DIS
+	//m_ppObjects2 = new CGameObject*[m_nObjects2];
+
 	XMFLOAT3 xmf3RotateAxis, xmf3SurfaceNormal;
 
 #ifdef NEW_CODE_9
@@ -996,6 +1000,7 @@ void CInstancingShader::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCom
 	//CRotatingObject *pRotatingObject = NULL;
 #endif
 
+	/*
 	for (int i = 0; i < m_nObjects; i)
 	{
 
@@ -1108,13 +1113,26 @@ void CInstancingShader::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCom
 		m_ppObjects[i++] = pRotatingObject;
 #endif
 	}
-
+	*/
 	//인스턴싱을 사용하여 렌더링하기 위하여 하나의 게임 객체만 메쉬를 가진다.
-	CCubeMeshDiffused *pCubeMesh = new CCubeMeshDiffused(pd3dDevice, pd3dCommandList,
-		12.0f, 12.0f, 12.0f);
 
+for (int i = 0; i < m_nObjects; i) {
+		pRotatingObject = new CBillboardObject(1);
+
+#ifndef _WITH_BATCH_MATERIAL
+		pRotatingObject->SetMaterial(pCubeMaterial);
+#endif
+		float xPosition = rand() % 2000;
+		float zPosition = rand() % 2000;
+
+		float fHeight = pTerrain->GetHeight(xPosition, zPosition);
+		pRotatingObject->SetPosition(xPosition, fHeight + 25.0f, zPosition);
+
+		pRotatingObject->SetCbvGPUDescriptorHandlePtr(m_d3dCbvGPUDescriptorStartHandle.ptr + (::gnCbvSrvDescriptorIncrementSize * i));
+		m_ppObjects[i++] = pRotatingObject;
+	}
 	m_ppObjects[0]->SetMesh(0, pFaceMesh);
-	m_ppObjects[400]->SetMesh(0, pGrassMesh);
+	//m_ppObjects2[0]->SetMesh(0, pGrassMesh);
 
 	//pRotatingObject->SetMesh(0, pFaceMesh);
 	//pGrassObject->SetMesh(0, pGrassMesh);

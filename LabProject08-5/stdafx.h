@@ -34,6 +34,8 @@
 
 #define NEW_CODE_INSTANCING
 
+#define NEW_CODE_DIS	// 분리작업하는데 ifdef이제 못쓰고!!  주석으로 달거야 찾아서와 쉐이더 시피피야 원성연아
+
 #define WIN32_LEAN_AND_MEAN             // 거의 사용되지 않는 내용은 Windows 헤더에서 제외합니다.
 
 #include <iostream>
