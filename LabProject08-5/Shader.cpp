@@ -943,8 +943,8 @@ void CInstancingShader::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCom
 
 #ifdef NEW_CODE_9
 	CTexture *pTexture = new CTexture(2, RESOURCE_TEXTURE2D_ARRAY, 0);
-	pTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Assets/Image/Trees/Trees.dds", 0);
-	pTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Assets/Image/Grasses/Grass.dds", 1);
+	pTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Assets/Image/Trees/Trees_3.dds", 0);
+	pTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Assets/Image/Grasses/Grass_6.dds", 1);
 
 	UINT ncbElementBytes = ((sizeof(CB_GAMEOBJECT_INFO) + 255) & ~255);
 

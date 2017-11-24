@@ -184,13 +184,14 @@ float4 PSInstancing(VS_INSTANCING_OUTPUT input, uint nPrimitiveID : SV_Primitive
   
     if (cColor.a <= 0.9f)
     {
-       // cColor.g = 0; //? ÀÌ»õ³© ¹ºµ¥
-        clip(-1);
-
-        return (cColor);
+        clip(-73);
     }
-    else
-        return (cColor);
+    
+    if(input.isGrass)
+        if(cColor.r <= 0.1 && cColor.g <= 0.1 && cColor.b <= 0.1)
+            clip(-73);
+
+    return (cColor);
 
 #else
         return (cColor);
