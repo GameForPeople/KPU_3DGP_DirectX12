@@ -32,6 +32,7 @@
 
 #define NEW_CODE_10 // 기존의 포지션을 통한 방식이 아닌 사용하지 않는 UV를 사용해서 풀과나무를 구분하는 작업 실시!
 
+#define NEW_CODE_INSTANCING
 
 #define WIN32_LEAN_AND_MEAN             // 거의 사용되지 않는 내용은 Windows 헤더에서 제외합니다.
 

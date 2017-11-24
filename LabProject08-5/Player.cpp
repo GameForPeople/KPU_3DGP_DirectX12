@@ -184,7 +184,7 @@ void CPlayer::Update(float fTimeElapsed)
 	if (fDeceleration > fLength) fDeceleration = fLength;
 	m_xmf3Velocity = Vector3::Add(m_xmf3Velocity, Vector3::ScalarProduct(m_xmf3Velocity, -fDeceleration, true));
 
-	std::cout << " xÁÂÇ¥´Â : " << m_xmf3Position.x << "  " << "zÁÂÇ¥´Â : " << m_xmf3Position.z << std::endl;
+	//std::cout << " xÁÂÇ¥´Â : " << m_xmf3Position.x << "  " << "zÁÂÇ¥´Â : " << m_xmf3Position.z << std::endl;
 }
 
 CCamera *CPlayer::OnChangeCamera(DWORD nNewCameraMode, DWORD nCurrentCameraMode)

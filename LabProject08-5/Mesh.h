@@ -135,6 +135,13 @@ protected:
 	int								m_nBaseVertex = 0;
 
 public:
+
+#ifdef NEW_CODE_INSTANCING
+	virtual void Render(ID3D12GraphicsCommandList *pd3dCommandList, UINT nInstances);
+	virtual void Render(ID3D12GraphicsCommandList *pd3dCommandList, UINT nInstances, D3D12_VERTEX_BUFFER_VIEW d3dInstancingBufferView);
+#endif
+
+public:
 	virtual void Render(ID3D12GraphicsCommandList *pd3dCommandList);
 };
 

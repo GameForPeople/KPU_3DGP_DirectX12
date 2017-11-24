@@ -4,6 +4,9 @@
 #define NEW_CODE_9 //--> 본코드 9번놈에서 정의된 짓을 할꺼야! --> 텍스쳐 어레이 인자2로 늘리고, 포지션으로 거짓말할꺼야..어 아니면 받은 인자개수알수있다면??
 #define NEW_CODE_10//---> 기존의 포지션이 아닌 UV좌표를 활용해서 이를 구분
 
+#define NEW_CODE_INSTANCING
+
+
 #ifdef _WITH_CONSTANT_BUFFER_SYNTAX
 struct CB_PLAYER_INFO
 {
@@ -123,6 +126,79 @@ struct VS_TEXTURED_OUTPUT
     bool isGrass : GRASS;
     #endif
 };
+
+#ifdef NEW_CODE_INSTANCING
+//정점 데이터와 인스턴싱 데이터를 위한 구조체이다.
+struct VS_INSTANCING_INPUT
+{
+    float3 position : POSITION;
+    //float4 color : COLOR;
+    float2 uv : TEXCOORD;
+
+    float4x4 mtxTransform : WORLDMATRIX;
+    float2 instanceuv : INSTANCETEXCOORD;
+};
+
+struct VS_INSTANCING_OUTPUT
+{
+    float4 position : SV_POSITION;
+    float2 uv : TEXCOORD;
+    bool isGrass : GRASS;
+};
+
+VS_INSTANCING_OUTPUT VSInstancing(VS_INSTANCING_INPUT input)
+{
+    VS_INSTANCING_OUTPUT output;
+
+    if (input.uv.x >= 2.0f || input.uv.y >= 2.0f)
+    {
+        output.isGrass = true;
+        input.uv.x -= 2.0f;
+        input.uv.y -= 2.0f;
+    }
+    else
+        output.isGrass = false;
+
+    output.position = mul(mul(mul(float4(input.position, 1.0f), input.mtxTransform),
+gmtxView), gmtxProjection);
+    
+    output.uv = input.uv;
+
+    return (output);
+}
+
+float4 PSInstancing(VS_INSTANCING_OUTPUT input, uint nPrimitiveID : SV_PrimitiveID) : SV_TARGET
+{
+#ifdef NEW_CODE_9
+    float4 cColor;
+    if (input.isGrass == true)
+        cColor = gtxtTextures[NonUniformResourceIndex((nPrimitiveID + 2) / 2)].Sample(gWrapSamplerState, input.uv);
+    else
+        cColor = gtxtTextures[NonUniformResourceIndex(nPrimitiveID / 2)].Sample(gWrapSamplerState, input.uv);
+#else
+    float4 cColor = gtxtTextures[NonUniformResourceIndex(nPrimitiveID/2)].Sample(gWrapSamplerState, input.uv);
+#endif
+
+    
+#ifdef NEW_CODE_2
+  
+    if (cColor.a <= 0.9f)
+    {
+       // cColor.g = 0; //? 이새낑 뭔데
+        clip(-1);
+
+        return (cColor);
+    }
+    else
+        return (cColor);
+
+#else
+        return (cColor);
+#endif
+    return (cColor);
+}
+
+#endif
 
 VS_TEXTURED_OUTPUT VSTextured(VS_TEXTURED_INPUT input)
 {

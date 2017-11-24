@@ -426,6 +426,12 @@ void CObjectsShader::ReleaseShaderVariables()
 	CTexturedShader::ReleaseShaderVariables();
 }
 
+
+#ifdef NEW_CODE_INSTANCING
+void CObjectsShader::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, void *pContext)
+{
+}
+#else
 void CObjectsShader::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, void *pContext)
 {
 	CHeightMapTerrain *pTerrain = (CHeightMapTerrain *)pContext;
@@ -554,7 +560,7 @@ void CObjectsShader::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsComman
 			xPosition = ((i - 300) % 10) * 50;
 			zPosition = ((i - 300) / 10) * 50 + 1500;
 		}
-		else if (i < (m_nObjects - 400) / 2 + 400){
+		else if (i < (m_nObjects - 400) / 2 + 400) {
 			xPosition = rand() % 2000;
 			zPosition = rand() % 900 + 600;
 			//xPosition = rand() % 200 + 900;
@@ -577,56 +583,57 @@ void CObjectsShader::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsComman
 		else {
 			pGrassObject->SetPosition(xPosition, fHeight, zPosition);
 			pGrassObject->Rotate((0.0f, 1.0f, 0.0f), (float)(rand() % 360));
-			pGrassObject->SetRotationAxis(XMFLOAT3( 1.0f, 0.0f, 0.0f));
+			pGrassObject->SetRotationAxis(XMFLOAT3(1.0f, 0.0f, 0.0f));
 			pGrassObject->SetRotationSpeed(4.0f * (i % 4) + 12.0f);
-			pGrassObject->SetRotatePower(((i % 4) + 1) * 14 );
+			pGrassObject->SetRotatePower(((i % 4) + 1) * 14);
 
 			pGrassObject->SetCbvGPUDescriptorHandlePtr(m_d3dCbvGPUDescriptorStartHandle.ptr + (::gnCbvSrvDescriptorIncrementSize * i));
 			m_ppObjects[i++] = pGrassObject;
 		}
 
 #else	//NEW_CODE_8
-				float xPosition;
-				float zPosition;
+		float xPosition;
+		float zPosition;
 
-				if (i < 100) {
-					xPosition = (i % 10) * 50;
-					zPosition = (i / 10) * 50;
-				}
-				else if (i < 200) {
-					xPosition = ((i - 100) % 10) * 50 + 1550;
-					zPosition = ((i - 100)/ 10) * 50 + 1550;
-				}
-				else if (i < 300) {
-					xPosition = ((i - 200) % 10) * 50 + 1550;
-					zPosition = ((i - 200) / 10) * 50 ;
-				}
-				else if (i < 400) {
-					xPosition = ((i - 300) % 10) * 50;
-					zPosition = ((i - 300) / 10) * 50 + 1500;
-				}
-				else {
-					xPosition = 1000;
-					zPosition = 1000;
-				}
+		if (i < 100) {
+			xPosition = (i % 10) * 50;
+			zPosition = (i / 10) * 50;
+		}
+		else if (i < 200) {
+			xPosition = ((i - 100) % 10) * 50 + 1550;
+			zPosition = ((i - 100) / 10) * 50 + 1550;
+		}
+		else if (i < 300) {
+			xPosition = ((i - 200) % 10) * 50 + 1550;
+			zPosition = ((i - 200) / 10) * 50;
+		}
+		else if (i < 400) {
+			xPosition = ((i - 300) % 10) * 50;
+			zPosition = ((i - 300) / 10) * 50 + 1500;
+		}
+		else {
+			xPosition = 1000;
+			zPosition = 1000;
+		}
 
-				float fHeight = pTerrain->GetHeight(xPosition, zPosition);
-				pRotatingObject->SetPosition(xPosition, fHeight + 25.0f , zPosition);
-				//if (y == 0)
-				//{
-				//	xmf3SurfaceNormal = pTerrain->GetNormal(xPosition, zPosition);
-				//	xmf3RotateAxis = Vector3::CrossProduct(XMFLOAT3(0.0f, 1.0f, 0.0f), xmf3SurfaceNormal);
-				//	if (Vector3::IsZero(xmf3RotateAxis)) xmf3RotateAxis = XMFLOAT3(0.0f, 1.0f, 0.0f);
-				//	float fAngle = acos(Vector3::DotProduct(XMFLOAT3(0.0f, 1.0f, 0.0f), xmf3SurfaceNormal));
-				//	pRotatingObject->Rotate(&xmf3RotateAxis, XMConvertToDegrees(fAngle));
-				//}
-				//pRotatingObject->SetRotationAxis(XMFLOAT3(0.0f, 1.0f, 0.0f));
-				//pRotatingObject->SetRotationSpeed(36.0f * (i % 10) + 36.0f);
-				pRotatingObject->SetCbvGPUDescriptorHandlePtr(m_d3dCbvGPUDescriptorStartHandle.ptr + (::gnCbvSrvDescriptorIncrementSize * i));
-				m_ppObjects[i++] = pRotatingObject;
+		float fHeight = pTerrain->GetHeight(xPosition, zPosition);
+		pRotatingObject->SetPosition(xPosition, fHeight + 25.0f, zPosition);
+		//if (y == 0)
+		//{
+		//	xmf3SurfaceNormal = pTerrain->GetNormal(xPosition, zPosition);
+		//	xmf3RotateAxis = Vector3::CrossProduct(XMFLOAT3(0.0f, 1.0f, 0.0f), xmf3SurfaceNormal);
+		//	if (Vector3::IsZero(xmf3RotateAxis)) xmf3RotateAxis = XMFLOAT3(0.0f, 1.0f, 0.0f);
+		//	float fAngle = acos(Vector3::DotProduct(XMFLOAT3(0.0f, 1.0f, 0.0f), xmf3SurfaceNormal));
+		//	pRotatingObject->Rotate(&xmf3RotateAxis, XMConvertToDegrees(fAngle));
+		//}
+		//pRotatingObject->SetRotationAxis(XMFLOAT3(0.0f, 1.0f, 0.0f));
+		//pRotatingObject->SetRotationSpeed(36.0f * (i % 10) + 36.0f);
+		pRotatingObject->SetCbvGPUDescriptorHandlePtr(m_d3dCbvGPUDescriptorStartHandle.ptr + (::gnCbvSrvDescriptorIncrementSize * i));
+		m_ppObjects[i++] = pRotatingObject;
 #endif
 	}
 }
+#endif
 
 #ifndef NEW_CODE_8
 void CObjectsShader::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, void *pContext)
@@ -753,6 +760,381 @@ void CObjectsShader::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera 
 		if (m_ppObjects[j]) m_ppObjects[j]->Render(pd3dCommandList, pCamera);
 	}
 }
+
+#ifdef NEW_CODE_INSTANCING
+CInstancingShader::CInstancingShader()
+{
+}
+CInstancingShader::~CInstancingShader()
+{
+}
+
+D3D12_INPUT_LAYOUT_DESC CInstancingShader::CreateInputLayout()
+{
+	/*
+	UINT nInputElementDescs = 7;
+	D3D12_INPUT_ELEMENT_DESC *pd3dInputElementDescs = new
+	D3D12_INPUT_ELEMENT_DESC[nInputElementDescs];
+	//정점 정보를 위한 입력 원소이다.
+	pd3dInputElementDescs[0] = { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,
+	D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	pd3dInputElementDescs[1] = { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12,
+	D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	//인스턴싱 정보를 위한 입력 원소이다.
+	pd3dInputElementDescs[2] = { "WORLDMATRIX", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 0,
+	D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1 };
+	pd3dInputElementDescs[3] = { "WORLDMATRIX", 1, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 16,
+	D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1 };
+	pd3dInputElementDescs[4] = { "WORLDMATRIX", 2, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 32,
+	D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1 };
+	pd3dInputElementDescs[5] = { "WORLDMATRIX", 3, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 48,
+	D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1 };
+	pd3dInputElementDescs[6] = { "INSTANCECOLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1,
+	64, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1 };
+	D3D12_INPUT_LAYOUT_DESC d3dInputLayoutDesc;
+	d3dInputLayoutDesc.pInputElementDescs = pd3dInputElementDescs;
+	d3dInputLayoutDesc.NumElements = nInputElementDescs;
+	return(d3dInputLayoutDesc);
+	*/
+	UINT nInputElementDescs = 7;
+	D3D12_INPUT_ELEMENT_DESC *pd3dInputElementDescs = new D3D12_INPUT_ELEMENT_DESC[nInputElementDescs];
+
+	pd3dInputElementDescs[0] = { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	pd3dInputElementDescs[1] = { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	//인스턴싱 정보를 위한 입력 원소이다.
+	pd3dInputElementDescs[2] = { "WORLDMATRIX", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 0, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1 };
+	pd3dInputElementDescs[3] = { "WORLDMATRIX", 1, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 16,D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1 };
+	pd3dInputElementDescs[4] = { "WORLDMATRIX", 2, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 32,D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1 };
+	pd3dInputElementDescs[5] = { "WORLDMATRIX", 3, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 48,D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1 };
+	pd3dInputElementDescs[6] = { "INSTANCETEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 1, 64, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1 };
+	D3D12_INPUT_LAYOUT_DESC d3dInputLayoutDesc;
+	d3dInputLayoutDesc.pInputElementDescs = pd3dInputElementDescs;
+	d3dInputLayoutDesc.NumElements = nInputElementDescs;
+
+	return(d3dInputLayoutDesc);
+}
+
+D3D12_SHADER_BYTECODE CInstancingShader::CreateVertexShader(ID3DBlob **ppd3dShaderBlob)
+{
+	return(CShader::CompileShaderFromFile(L"Shaders.hlsl", "VSInstancing", "vs_5_1",
+		ppd3dShaderBlob));
+}
+
+D3D12_SHADER_BYTECODE CInstancingShader::CreatePixelShader(ID3DBlob **ppd3dShaderBlob)
+{
+	return(CShader::CompileShaderFromFile(L"Shaders.hlsl", "PSInstancing", "ps_5_1",
+		ppd3dShaderBlob));
+}
+
+void CInstancingShader::CreateShader(ID3D12Device *pd3dDevice, ID3D12RootSignature
+	*pd3dGraphicsRootSignature)
+{
+	//UINT ncbElementBytes = ((sizeof(CB_GAMEOBJECT_INFO) + 255) & ~255); //256의 배수
+
+	m_nPipelineStates = 1;
+	m_ppd3dPipelineStates = new ID3D12PipelineState*[m_nPipelineStates];
+	CShader::CreateShader(pd3dDevice, pd3dGraphicsRootSignature);
+}
+
+void CInstancingShader::CreateShaderVariables(ID3D12Device *pd3dDevice,
+	ID3D12GraphicsCommandList *pd3dCommandList)
+{
+	//UINT ncbElementBytes = ((sizeof(VS_VB_INSTANCE) + 255) & ~255);
+
+	//인스턴스 정보를 저장할 정점 버퍼를 업로드 힙 유형으로 생성한다.
+	m_pd3dcbGameObjects = ::CreateBufferResource(pd3dDevice, pd3dCommandList, NULL,
+		sizeof(VS_VB_INSTANCE) * m_nObjects, D3D12_HEAP_TYPE_UPLOAD,
+		D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, NULL);
+	//정점 버퍼(업로드 힙)에 대한 포인터를 저장한다.
+	m_pd3dcbGameObjects->Map(0, NULL, (void **)& m_pcbMappedGameObjects);
+	//정점 버퍼에 대한 뷰를 생성한다.
+	m_d3dInstancingBufferView.BufferLocation =
+		m_pd3dcbGameObjects->GetGPUVirtualAddress();
+	m_d3dInstancingBufferView.StrideInBytes = sizeof(VS_VB_INSTANCE);
+	m_d3dInstancingBufferView.SizeInBytes = sizeof(VS_VB_INSTANCE) * m_nObjects;
+}
+
+void CInstancingShader::ReleaseShaderVariables()
+{
+	if (m_pd3dcbGameObjects) m_pd3dcbGameObjects->Unmap(0, NULL);
+	if (m_pd3dcbGameObjects) m_pd3dcbGameObjects->Release();
+}
+
+//인스턴싱 정보(객체의 월드 변환 행렬과 색상)를 정점 버퍼에 복사한다.
+void CInstancingShader::UpdateShaderVariables(ID3D12GraphicsCommandList
+	*pd3dCommandList)
+{
+	/*
+
+	*/
+	//UINT ncbElementBytes = ((sizeof(VS_VB_INSTANCE) + 255) & ~255);
+
+	for (int j = 0; j < m_nObjects; j++)
+	{
+		//m_pcbMappedGameObjects[j].m_xmf2TexCoord = (j % 2) ? XMFLOAT2(0.5f, 0.0f, 0.0f, 0.0f) :
+		//	XMFLOAT2(0.0f, 0.0f, 0.5f, 0.0f); 여기 원래 텍스쳐 코드넘겨줘야하는데 안넘겨줘도되네 ..ㅎㅎㅎ왤까?
+		XMStoreFloat4x4(&m_pcbMappedGameObjects[j].m_xmf4x4Transform,
+			XMMatrixTranspose(XMLoadFloat4x4(&m_ppObjects[j]->m_xmf4x4World)));
+	}
+}
+
+void CInstancingShader::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, void *pContext)
+{
+	/*
+	int xObjects = 10, yObjects = 10, zObjects = 10, i = 0;
+	m_nObjects = (xObjects * 2 + 1) * (yObjects * 2 + 1) * (zObjects * 2 + 1);
+	m_ppObjects = new CGameObject*[m_nObjects];
+	float fxPitch = 12.0f * 2.5f;
+	float fyPitch = 12.0f * 2.5f;
+	float fzPitch = 12.0f * 2.5f;
+	CRotatingObject *pRotatingObject = NULL;
+	for (int x = -xObjects; x <= xObjects; x++)
+	{
+	for (int y = -yObjects; y <= yObjects; y++)
+	{
+	for (int z = -zObjects; z <= zObjects; z++)
+	{
+	pRotatingObject = new CRotatingObject();
+	pRotatingObject->SetPosition(fxPitch*x, fyPitch*y, fzPitch*z);
+	pRotatingObject->SetRotationAxis(XMFLOAT3(0.0f, 1.0f, 0.0f));
+	pRotatingObject->SetRotationSpeed(10.0f*(i % 10));
+	m_ppObjects[i++] = pRotatingObject;
+	}
+	}
+	}
+	//인스턴싱을 사용하여 렌더링하기 위하여 하나의 게임 객체만 메쉬를 가진다.
+	CCubeMeshDiffused *pCubeMesh = new CCubeMeshDiffused(pd3dDevice, pd3dCommandList,
+	12.0f, 12.0f, 12.0f);
+	m_ppObjects[0]->SetMesh(pCubeMesh);
+	//인스턴싱을 위한 정점 버퍼와 뷰를 생성한다.
+	CreateShaderVariables(pd3dDevice, pd3dCommandList);
+	*/
+
+	CHeightMapTerrain *pTerrain = (CHeightMapTerrain *)pContext;
+
+#ifdef NEW_CODE_5
+	float fxPitch = 50.0f * 3.5f;
+	float fyPitch = 50.0f * 3.5f;
+	float fzPitch = 50.0f * 3.5f;
+#else
+	float fxPitch = 12.0f * 3.5f;
+	float fyPitch = 12.0f * 3.5f;
+	float fzPitch = 12.0f * 3.5f;
+#endif
+
+
+#ifdef NEW_CODE_8
+	m_nObjects = 400;
+#else
+	float fTerrainWidth = pTerrain->GetWidth();
+	float fTerrainLength = pTerrain->GetLength();
+
+	int xObjects = int(fTerrainWidth / fxPitch);
+	int yObjects = 1;
+	int zObjects = int(fTerrainLength / fzPitch);
+	m_nObjects = (xObjects * yObjects * zObjects);
+#endif
+
+#ifdef NEW_CODE_9
+	//m_nObjects = 1500;
+	m_nObjects = 30000;
+
+#endif
+
+#ifdef NEW_CODE_9
+	CTexture *pTexture = new CTexture(2, RESOURCE_TEXTURE2D_ARRAY, 0);
+	pTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Assets/Image/Trees/Trees.dds", 0);
+	pTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Assets/Image/Grasses/Grass.dds", 1);
+
+	UINT ncbElementBytes = ((sizeof(CB_GAMEOBJECT_INFO) + 255) & ~255);
+
+	CreateCbvAndSrvDescriptorHeaps(pd3dDevice, pd3dCommandList, m_nObjects, 2);
+	CreateShaderVariables(pd3dDevice, pd3dCommandList);
+	CreateConstantBufferViews(pd3dDevice, pd3dCommandList, m_nObjects, m_pd3dcbGameObjects, ncbElementBytes);
+	CreateShaderResourceViews(pd3dDevice, pd3dCommandList, pTexture, 3, false);
+
+#else
+	//NEW_CODE_7
+	CTexture *pTexture = new CTexture(1, RESOURCE_TEXTURE2D_ARRAY, 0);
+	pTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Assets/Image/Trees/Trees.dds", 0);
+
+	//pTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Assets/Image/Grasses/Grass.dds", 0);
+
+	UINT ncbElementBytes = ((sizeof(CB_GAMEOBJECT_INFO) + 255) & ~255);
+
+	CreateCbvAndSrvDescriptorHeaps(pd3dDevice, pd3dCommandList, m_nObjects, 1);
+	CreateShaderVariables(pd3dDevice, pd3dCommandList);
+	CreateConstantBufferViews(pd3dDevice, pd3dCommandList, m_nObjects, m_pd3dcbGameObjects, ncbElementBytes);
+	CreateShaderResourceViews(pd3dDevice, pd3dCommandList, pTexture, 3, false);
+#endif
+
+#ifdef _WITH_BATCH_MATERIAL
+	m_pMaterial = new CMaterial();
+	m_pMaterial->SetTexture(pTexture);
+#else
+	CMaterial *pCubeMaterial = new CMaterial();
+	pCubeMaterial->SetTexture(pTexture);
+#endif
+
+#ifdef NEW_CODE_7
+	CFaceMeshTextured *pFaceMesh = new CFaceMeshTextured(pd3dDevice, pd3dCommandList, 50.0f, 50.0f, 0);
+	CFaceMeshTextured *pGrassMesh = new CFaceMeshTextured(pd3dDevice, pd3dCommandList, 20.0f, 30.0f, 1);
+
+#else 
+	CCubeMeshTextured *pCubeMesh = new CCubeMeshTextured(pd3dDevice, pd3dCommandList, 50.0f, 50.0f, 0.1f);
+	//CCubeMeshTextured *pCubeMesh = new CCubeMeshTextured(pd3dDevice, pd3dCommandList, 12.0f, 12.0f, 12.0f);
+#endif
+
+	m_ppObjects = new CGameObject*[m_nObjects];
+	XMFLOAT3 xmf3RotateAxis, xmf3SurfaceNormal;
+
+#ifdef NEW_CODE_9
+	CBillboardObject *pRotatingObject = NULL;
+	CGrassObject *pGrassObject = NULL;
+#else	//NEW_CODE_3
+	CBillboardObject *pRotatingObject = NULL;
+	//CRotatingObject *pRotatingObject = NULL;
+#endif
+
+	for (int i = 0; i < m_nObjects; i)
+	{
+
+#ifdef NEW_CODE_9
+		if (i < 400) {
+			pRotatingObject = new CBillboardObject(1);
+			//pRotatingObject->SetMesh(0, pFaceMesh);
+		}
+		else {
+			pGrassObject = new CGrassObject(1);
+			//pGrassObject->SetMesh(0, pGrassMesh);
+		}
+#else //NEW_CODE_3
+		pRotatingObject = new CBillboardObject(1);
+#endif
+
+#ifndef _WITH_BATCH_MATERIAL
+		pRotatingObject->SetMaterial(pCubeMaterial);
+#endif
+
+#ifdef NEW_CODE_9
+		float xPosition;
+		float zPosition;
+
+		if (i < 100) {
+			xPosition = (i % 10) * 50;
+			zPosition = (i / 10) * 50;
+		}
+		else if (i < 200) {
+			xPosition = ((i - 100) % 10) * 50 + 1550;
+			zPosition = ((i - 100) / 10) * 50 + 1550;
+		}
+		else if (i < 300) {
+			xPosition = ((i - 200) % 10) * 50 + 1550;
+			zPosition = ((i - 200) / 10) * 50;
+		}
+		else if (i < 400) {
+			xPosition = ((i - 300) % 10) * 50;
+			zPosition = ((i - 300) / 10) * 50 + 1500;
+		}
+		else if (i < (m_nObjects - 400) / 2 + 400) {
+			xPosition = rand() % 2000;
+			zPosition = rand() % 900 + 600;
+			//xPosition = rand() % 200 + 900;
+			//zPosition = rand() % 200 + 900;
+		}
+		else if (i < m_nObjects) {
+			xPosition = rand() % 900 + 600;
+			zPosition = rand() % 2000;
+			//xPosition = rand() % 200 + 900;
+			//zPosition = rand() % 200 + 900;
+		}
+
+		float fHeight = pTerrain->GetHeight(xPosition, zPosition);
+		if (i < 400) {
+			pRotatingObject->SetPosition(xPosition, fHeight + 25.0f, zPosition);
+
+			pRotatingObject->SetCbvGPUDescriptorHandlePtr(m_d3dCbvGPUDescriptorStartHandle.ptr + (::gnCbvSrvDescriptorIncrementSize * i));
+			m_ppObjects[i++] = pRotatingObject;
+		}
+		else {
+			pGrassObject->SetPosition(xPosition, fHeight, zPosition);
+			pGrassObject->Rotate((0.0f, 1.0f, 0.0f), (float)(rand() % 360));
+			pGrassObject->SetRotationAxis(XMFLOAT3(1.0f, 0.0f, 0.0f));
+			pGrassObject->SetRotationSpeed(4.0f * (i % 4) + 12.0f);
+			pGrassObject->SetRotatePower(((i % 4) + 1) * 14);
+
+			pGrassObject->SetCbvGPUDescriptorHandlePtr(m_d3dCbvGPUDescriptorStartHandle.ptr + (::gnCbvSrvDescriptorIncrementSize * i));
+			m_ppObjects[i++] = pGrassObject;
+		}
+
+#else	//NEW_CODE_8
+		float xPosition;
+		float zPosition;
+
+		if (i < 100) {
+			xPosition = (i % 10) * 50;
+			zPosition = (i / 10) * 50;
+		}
+		else if (i < 200) {
+			xPosition = ((i - 100) % 10) * 50 + 1550;
+			zPosition = ((i - 100) / 10) * 50 + 1550;
+		}
+		else if (i < 300) {
+			xPosition = ((i - 200) % 10) * 50 + 1550;
+			zPosition = ((i - 200) / 10) * 50;
+		}
+		else if (i < 400) {
+			xPosition = ((i - 300) % 10) * 50;
+			zPosition = ((i - 300) / 10) * 50 + 1500;
+		}
+		else {
+			xPosition = 1000;
+			zPosition = 1000;
+		}
+
+		float fHeight = pTerrain->GetHeight(xPosition, zPosition);
+		pRotatingObject->SetPosition(xPosition, fHeight + 25.0f, zPosition);
+		//if (y == 0)
+		//{
+		//	xmf3SurfaceNormal = pTerrain->GetNormal(xPosition, zPosition);
+		//	xmf3RotateAxis = Vector3::CrossProduct(XMFLOAT3(0.0f, 1.0f, 0.0f), xmf3SurfaceNormal);
+		//	if (Vector3::IsZero(xmf3RotateAxis)) xmf3RotateAxis = XMFLOAT3(0.0f, 1.0f, 0.0f);
+		//	float fAngle = acos(Vector3::DotProduct(XMFLOAT3(0.0f, 1.0f, 0.0f), xmf3SurfaceNormal));
+		//	pRotatingObject->Rotate(&xmf3RotateAxis, XMConvertToDegrees(fAngle));
+		//}
+		//pRotatingObject->SetRotationAxis(XMFLOAT3(0.0f, 1.0f, 0.0f));
+		//pRotatingObject->SetRotationSpeed(36.0f * (i % 10) + 36.0f);
+		pRotatingObject->SetCbvGPUDescriptorHandlePtr(m_d3dCbvGPUDescriptorStartHandle.ptr + (::gnCbvSrvDescriptorIncrementSize * i));
+		m_ppObjects[i++] = pRotatingObject;
+#endif
+	}
+
+	//인스턴싱을 사용하여 렌더링하기 위하여 하나의 게임 객체만 메쉬를 가진다.
+	CCubeMeshDiffused *pCubeMesh = new CCubeMeshDiffused(pd3dDevice, pd3dCommandList,
+		12.0f, 12.0f, 12.0f);
+
+	m_ppObjects[0]->SetMesh(0, pFaceMesh);
+	m_ppObjects[400]->SetMesh(0, pGrassMesh);
+
+	//pRotatingObject->SetMesh(0, pFaceMesh);
+	//pGrassObject->SetMesh(0, pGrassMesh);
+
+	//인스턴싱을 위한 정점 버퍼와 뷰를 생성한다.
+	CreateShaderVariables(pd3dDevice, pd3dCommandList);
+}
+
+void CInstancingShader::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera
+	*pCamera)
+{
+	CObjectsShader::Render(pd3dCommandList, pCamera);
+	//모든 게임 객체의 인스턴싱 데이터를 버퍼에 저장한다.
+	UpdateShaderVariables(pd3dCommandList);
+	//하나의 정점 데이터를 사용하여 모든 게임 객체(인스턴스)들을 렌더링한다.
+	m_ppObjects[0]->Render(pd3dCommandList, pCamera, 400, m_d3dInstancingBufferView);
+	m_ppObjects[400]->Render(pd3dCommandList, pCamera, m_nObjects, m_d3dInstancingBufferView);
+}
+
+#endif
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
