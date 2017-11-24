@@ -277,6 +277,8 @@ void CGameObject::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pC
 	//}
 	//
 	//pd3dCommandList->SetGraphicsRootDescriptorTable(2, m_d3dCbvGPUDescriptorHandle);
+	
+	//std::cout << m_nMeshes << std::endl;
 
 	if (m_ppMeshes)
 	{
@@ -287,6 +289,23 @@ void CGameObject::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pC
 	}
 
 }
+
+void CGameObject::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera,
+	UINT nInstances, D3D12_VERTEX_BUFFER_VIEW d3dInstancingBufferView, int type)
+{
+
+	OnPrepareRender();
+
+	if (m_ppMeshes)
+	{
+		for (int i = 0; i < m_nMeshes; i++)
+		{
+			if (m_ppMeshes[i]) m_ppMeshes[i]->Render(pd3dCommandList, nInstances, d3dInstancingBufferView, type);
+		}
+	}
+
+}
+
 #endif
 
 void CGameObject::ReleaseUploadBuffers()
@@ -443,6 +462,24 @@ void CGrassObject::Animate(float fTimeElapsed, CCamera *pCamera)
 		m_rotateCount--;
 }
 
+void CGrassObject::Animate(float fTimeElapsed, CCamera *pCamera, int nowLevel)
+{
+	if (nowLevel == m_nowLevel) {
+		CGameObject::Rotate(&m_xmf3RotationAxis, m_rotateDir * m_fRotationSpeed * fTimeElapsed);
+		//XMMATRIX mtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_xmf3RevolutionAxis), XMConvertToRadians(m_fRevolutionSpeed * fTimeElapsed));
+		//m_xmf4x4World = Matrix4x4::Multiply(m_xmf4x4World, mtxRotate);
+
+		if (m_rotateCount == m_rotatePower || m_rotateCount == -m_rotatePower) {
+			m_rotateDir *= -1;
+		}
+
+		if (m_rotateDir == 1)
+			m_rotateCount++;
+		else if (m_rotateDir == -1)
+			m_rotateCount--;
+	}
+}
+
 #endif
 ////////////////////////////////////////////////////////////////////////////////////////////////
 #ifdef NEW_CODE_3
@@ -457,8 +494,20 @@ CBillboardObject::~CBillboardObject() {
 }
 
 void CBillboardObject::Animate(float fTimeElapsed, CCamera *pCamera) {
+
 	XMFLOAT3 xmf3CameraPosition = pCamera->GetPosition();
 	SetLookAt(xmf3CameraPosition);
+}
+
+void CBillboardObject::Animate(float fTimeElapsed, CCamera *pCamera, int nowLevel) {
+	if (nowLevel == 5) {
+		XMFLOAT3 xmf3CameraPosition = pCamera->GetPosition();
+		SetLookAt(xmf3CameraPosition);
+	}
+	else if (nowLevel == m_nowLevel) {
+		XMFLOAT3 xmf3CameraPosition = pCamera->GetPosition();
+		SetLookAt(xmf3CameraPosition);
+	}
 }
 
 void CBillboardObject::SetLookAt(XMFLOAT3& xmf3Target) {

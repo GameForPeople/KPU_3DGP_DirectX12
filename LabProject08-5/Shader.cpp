@@ -750,6 +750,19 @@ void CObjectsShader::AnimateObjects(float fTimeElapsed, CCamera *pCamera)
 	}
 }
 
+void CObjectsShader::AnimateObjects(float fTimeElapsed, CCamera *pCamera, int nowLevel)
+{
+	for (int j = 0; j < m_nObjects; j++)
+	{
+		m_ppObjects[j]->Animate(fTimeElapsed, pCamera, nowLevel);
+	}
+
+	for (int j = 0; j < m_nObjects2; j++)
+	{
+		m_ppObjects2[j]->Animate(fTimeElapsed, pCamera, nowLevel);
+	}
+}
+
 void CObjectsShader::ReleaseUploadBuffers()
 {
 	if (m_ppObjects)
@@ -876,12 +889,28 @@ void CInstancingShader::CreateShaderVariables(ID3D12Device *pd3dDevice,
 		m_pd3dcbGameObjects->GetGPUVirtualAddress();
 	m_d3dInstancingBufferView.StrideInBytes = sizeof(VS_VB_INSTANCE);
 	m_d3dInstancingBufferView.SizeInBytes = sizeof(VS_VB_INSTANCE) * (m_nObjects + m_nObjects2);
+
+	////인스턴스 정보를 저장할 정점 버퍼를 업로드 힙 유형으로 생성한다.
+	//m_pd3dcbGameObjects2 = ::CreateBufferResource(pd3dDevice, pd3dCommandList, NULL,
+	//	sizeof(VS_VB_INSTANCE) * (m_nObjects2), D3D12_HEAP_TYPE_UPLOAD,
+	//	D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, NULL);
+	////정점 버퍼(업로드 힙)에 대한 포인터를 저장한다.
+	//m_pd3dcbGameObjects2->Map(0, NULL, (void **)& m_pcbMappedGameObjects2);
+	////정점 버퍼에 대한 뷰를 생성한다.
+	//m_d3dInstancingBufferView2.BufferLocation =
+	//	m_pd3dcbGameObjects2->GetGPUVirtualAddress();
+	//m_d3dInstancingBufferView2.StrideInBytes = sizeof(VS_VB_INSTANCE);
+	//m_d3dInstancingBufferView2.SizeInBytes = sizeof(VS_VB_INSTANCE) * ( m_nObjects2);
+
 }
 
 void CInstancingShader::ReleaseShaderVariables()
 {
 	if (m_pd3dcbGameObjects) m_pd3dcbGameObjects->Unmap(0, NULL);
 	if (m_pd3dcbGameObjects) m_pd3dcbGameObjects->Release();
+
+	//if (m_pd3dcbGameObjects2) m_pd3dcbGameObjects2->Unmap(0, NULL);
+	//if (m_pd3dcbGameObjects2) m_pd3dcbGameObjects2->Release();
 }
 
 //인스턴싱 정보(객체의 월드 변환 행렬과 색상)를 정점 버퍼에 복사한다.
@@ -895,14 +924,14 @@ void CInstancingShader::UpdateShaderVariables(ID3D12GraphicsCommandList
 
 	for (int j = 0; j < m_nObjects; j++)
 	{
-		//m_pcbMappedGameObjects[j].m_xmf2TexCoord = (j % 2) ? XMFLOAT2(0.5f, 0.0f, 0.0f, 0.0f) :
+		m_pcbMappedGameObjects[j].m_xmf2TexCoord = XMFLOAT2(0, 0);
 		//	XMFLOAT2(0.0f, 0.0f, 0.5f, 0.0f); 여기 원래 텍스쳐 코드넘겨줘야하는데 안넘겨줘도되네 ..ㅎㅎㅎ왤까?
 		XMStoreFloat4x4(&m_pcbMappedGameObjects[j].m_xmf4x4Transform,
 			XMMatrixTranspose(XMLoadFloat4x4(&m_ppObjects[j]->m_xmf4x4World)));
 	}
 	for (int j = 0; j < m_nObjects2; j++)
 	{
-		//m_pcbMappedGameObjects[j].m_xmf2TexCoord = (j % 2) ? XMFLOAT2(0.5f, 0.0f, 0.0f, 0.0f) :
+		m_pcbMappedGameObjects[m_nObjects + j].m_xmf2TexCoord = XMFLOAT2((float)j, 1);
 		//	XMFLOAT2(0.0f, 0.0f, 0.5f, 0.0f); 여기 원래 텍스쳐 코드넘겨줘야하는데 안넘겨줘도되네 ..ㅎㅎㅎ왤까?
 		XMStoreFloat4x4(&m_pcbMappedGameObjects[m_nObjects + j].m_xmf4x4Transform,
 			XMMatrixTranspose(XMLoadFloat4x4(&m_ppObjects2[j]->m_xmf4x4World)));
@@ -969,7 +998,7 @@ void CInstancingShader::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCom
 #ifdef NEW_CODE_9
 	//m_nObjects = 1500;
 	m_nObjects = 3000;
-	m_nObjects2 = 27000; //0;
+	m_nObjects2 = 47000; //0;
 
 #endif
 
@@ -1156,6 +1185,34 @@ for (int i = 0; i < m_nObjects; i) {
 		float xPosition = rand() % 2000;
 		float zPosition = rand() % 2000;
 
+		while (xPosition > 920 && xPosition < 1120) {
+			xPosition = rand() % 2000;
+		}
+		while (zPosition > 920 && zPosition < 1120) {
+			zPosition = rand() % 2000;
+		}
+
+		if (i == 0) {
+			xPosition = 1028;
+			zPosition = 1028;
+		}
+
+		if (xPosition < 930 && zPosition < 930) {
+			pRotatingObject->m_nowLevel = 1;
+		}
+		else if (xPosition >1120 && zPosition < 930) {
+			pRotatingObject->m_nowLevel = 2;
+		}
+		else if (xPosition < 930 && zPosition > 1120) {
+			pRotatingObject->m_nowLevel = 3;
+		}
+		else if (xPosition > 1120 && zPosition > 1120) {
+			pRotatingObject->m_nowLevel = 4;
+		}
+		else {
+			pRotatingObject->m_nowLevel = 5;
+		}
+
 		float fHeight = pTerrain->GetHeight(xPosition, zPosition);
 		pRotatingObject->SetPosition(xPosition, fHeight + 25.0f, zPosition);
 
@@ -1171,6 +1228,39 @@ for (int i = 0; i < m_nObjects2; i) {
 #endif
 	float xPosition = rand() % 2000;
 	float zPosition = rand() % 2000;
+
+	if (i >= 4000) {
+		while (xPosition > 920 && xPosition < 1120) {
+			xPosition = rand() % 2000;
+		}
+		while (zPosition > 920 && zPosition < 1120) {
+			zPosition = rand() % 2000;
+		}
+	}
+	else {
+		while (xPosition < 940 || xPosition > 1080) {
+			xPosition = rand() % 2000;
+		}
+		while (zPosition < 940 || zPosition > 1080) {
+			zPosition = rand() % 2000;
+		}
+	}
+
+	if (xPosition < 930 && zPosition < 930) {
+		pGrassObject->m_nowLevel = 1;
+	}
+	else if (xPosition >1120 && zPosition < 930) {
+		pGrassObject->m_nowLevel = 2;
+	}
+	else if (xPosition < 930 && zPosition > 1120) {
+		pGrassObject->m_nowLevel = 3;
+	}
+	else if (xPosition > 1120 && zPosition > 1120) {
+		pGrassObject->m_nowLevel = 4;
+	}
+	else {
+		pGrassObject->m_nowLevel = 5;
+	}
 
 	float fHeight = pTerrain->GetHeight(xPosition, zPosition);
 	pGrassObject->SetPosition(xPosition, fHeight, zPosition);
@@ -1200,8 +1290,8 @@ void CInstancingShader::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCame
 	//모든 게임 객체의 인스턴싱 데이터를 버퍼에 저장한다.
 	UpdateShaderVariables(pd3dCommandList);
 	//하나의 정점 데이터를 사용하여 모든 게임 객체(인스턴스)들을 렌더링한다.
-	m_ppObjects[0]->Render(pd3dCommandList, pCamera, m_nObjects, m_d3dInstancingBufferView);
-	m_ppObjects2[0]->Render(pd3dCommandList, pCamera, m_nObjects2, m_d3dInstancingBufferView);
+	m_ppObjects[0]->Render(pd3dCommandList, pCamera, m_nObjects, m_d3dInstancingBufferView, 0);
+	m_ppObjects2[0]->Render(pd3dCommandList, pCamera, m_nObjects2, m_d3dInstancingBufferView, 1);
 }
 
 #endif

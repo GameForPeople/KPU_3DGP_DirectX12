@@ -42,8 +42,33 @@ void CMesh::Render(ID3D12GraphicsCommandList *pd3dCommandList, UINT nInstances)
 	}
 	else
 	{
+		//std::cout << m_nVertices << std::endl;
+		//pd3dCommandList->DrawInstanced(m_nVertices, nInstances, m_nOffset, 29000);
+		//pd3dCommandList->DrawInstanced(m_nVertices, nInstances, m_nOffset, 0);
 		pd3dCommandList->DrawInstanced(m_nVertices, nInstances, m_nOffset, 0);
+
 	}
+}
+
+void CMesh::Render(ID3D12GraphicsCommandList *pd3dCommandList, UINT nInstances, int type)
+{
+	pd3dCommandList->IASetPrimitiveTopology(m_d3dPrimitiveTopology);
+//	if (m_pd3dIndexBuffer)
+//	{
+//		pd3dCommandList->IASetIndexBuffer(&m_d3dIndexBufferView);
+//		pd3dCommandList->DrawIndexedInstanced(m_nIndices, nInstances, 0, 0, 0);
+//	}
+//	else
+//	{
+		//std::cout << m_nVertices << std::endl;
+		//pd3dCommandList->DrawInstanced(m_nVertices, nInstances, m_nOffset, 29000);
+		//pd3dCommandList->DrawInstanced(m_nVertices, nInstances, m_nOffset, 0);
+		if(type == 0)
+			pd3dCommandList->DrawInstanced(m_nVertices, nInstances, m_nOffset, 0);
+		else if(type == 1)
+			pd3dCommandList->DrawInstanced(m_nVertices, nInstances, m_nOffset, 3000);
+
+//	}
 }
 
 void CMesh::Render(ID3D12GraphicsCommandList *pd3dCommandList, UINT nInstances,
@@ -55,6 +80,17 @@ void CMesh::Render(ID3D12GraphicsCommandList *pd3dCommandList, UINT nInstances,
 	pd3dCommandList->IASetVertexBuffers(m_nSlot, _countof(pVertexBufferViews),
 		pVertexBufferViews);
 	Render(pd3dCommandList, nInstances);
+}
+
+void CMesh::Render(ID3D12GraphicsCommandList *pd3dCommandList, UINT nInstances,
+	D3D12_VERTEX_BUFFER_VIEW d3dInstancingBufferView, int type)
+{
+	//정점 버퍼 뷰와 인스턴싱 버퍼 뷰를 입력-조립 단계에 설정한다.
+	D3D12_VERTEX_BUFFER_VIEW pVertexBufferViews[] = { m_d3dVertexBufferView,
+		d3dInstancingBufferView };
+	pd3dCommandList->IASetVertexBuffers(m_nSlot, _countof(pVertexBufferViews),
+		pVertexBufferViews);
+	Render(pd3dCommandList, nInstances, type);
 }
 
 #else
@@ -222,13 +258,13 @@ CFaceMeshTextured::CFaceMeshTextured(ID3D12Device *pd3dDevice, ID3D12GraphicsCom
 	int i = 0;
 
 	//NEW_COE_10
-	pVertices[i++] = CTexturedVertex(XMFLOAT3(-fx, -fy, 0), XMFLOAT2(0.0f + texIndex * 2.0f, 0.0f + texIndex * 2.0f));
-	pVertices[i++] = CTexturedVertex(XMFLOAT3(+fx, -fy, 0), XMFLOAT2(1.0f + texIndex * 2.0f, 0.0f + texIndex * 2.0f));
-	pVertices[i++] = CTexturedVertex(XMFLOAT3(+fx, +fy, 0), XMFLOAT2(1.0f + texIndex * 2.0f, 1.0f + texIndex * 2.0f));
+	pVertices[i++] = CTexturedVertex(XMFLOAT3(-fx, -fy, 0), XMFLOAT2(0.0f , 0.0f ));
+	pVertices[i++] = CTexturedVertex(XMFLOAT3(+fx, -fy, 0), XMFLOAT2(1.0f , 0.0f ));
+	pVertices[i++] = CTexturedVertex(XMFLOAT3(+fx, +fy, 0), XMFLOAT2(1.0f , 1.0f ));
 
-	pVertices[i++] = CTexturedVertex(XMFLOAT3(-fx, -fy, 0), XMFLOAT2(0.0f + texIndex * 2.0f, 0.0f + texIndex * 2.0f));
-	pVertices[i++] = CTexturedVertex(XMFLOAT3(+fx, +fy, 0), XMFLOAT2(1.0f + texIndex * 2.0f, 1.0f + texIndex * 2.0f));
-	pVertices[i++] = CTexturedVertex(XMFLOAT3(-fx, +fy, 0), XMFLOAT2(0.0f + texIndex * 2.0f, 1.0f + texIndex * 2.0f));
+	pVertices[i++] = CTexturedVertex(XMFLOAT3(-fx, -fy, 0), XMFLOAT2(0.0f , 0.0f ));
+	pVertices[i++] = CTexturedVertex(XMFLOAT3(+fx, +fy, 0), XMFLOAT2(1.0f , 1.0f ));
+	pVertices[i++] = CTexturedVertex(XMFLOAT3(-fx, +fy, 0), XMFLOAT2(0.0f , 1.0f ));
 	
 	m_pd3dVertexBuffer = CreateBufferResource(pd3dDevice, pd3dCommandList, pVertices, m_nStride * m_nVertices, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, &m_pd3dVertexUploadBuffer);
 

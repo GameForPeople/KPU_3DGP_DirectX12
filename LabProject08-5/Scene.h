@@ -24,7 +24,9 @@ public:
 
 	bool ProcessInput(UCHAR *pKeysBuffer);
     void AnimateObjects(float fTimeElapsed, CCamera *pCamera= NULL);
-    void Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera=NULL);
+	void AnimateObjects(float fTimeElapsed, CCamera *pCamera = NULL, int nowLevel = 0);
+
+	void Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera=NULL);
 
 	void ReleaseUploadBuffers();
 

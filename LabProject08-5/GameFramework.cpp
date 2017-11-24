@@ -502,7 +502,7 @@ void CGameFramework::ProcessInput()
 
 void CGameFramework::AnimateObjects()
 {
-	if (m_pScene) m_pScene->AnimateObjects(m_GameTimer.GetTimeElapsed(), m_pCamera);
+	if (m_pScene) m_pScene->AnimateObjects(m_GameTimer.GetTimeElapsed(), m_pCamera, m_pPlayer->m_nowLevel);
 }
 
 void CGameFramework::WaitForGpuComplete()

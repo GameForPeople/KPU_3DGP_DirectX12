@@ -139,6 +139,9 @@ public:
 #ifdef NEW_CODE_INSTANCING
 	virtual void Render(ID3D12GraphicsCommandList *pd3dCommandList, UINT nInstances);
 	virtual void Render(ID3D12GraphicsCommandList *pd3dCommandList, UINT nInstances, D3D12_VERTEX_BUFFER_VIEW d3dInstancingBufferView);
+
+	virtual void Render(ID3D12GraphicsCommandList *pd3dCommandList, UINT nInstances, int type);
+	virtual void Render(ID3D12GraphicsCommandList *pd3dCommandList, UINT nInstances, D3D12_VERTEX_BUFFER_VIEW d3dInstancingBufferView, int type);
 #endif
 
 public:

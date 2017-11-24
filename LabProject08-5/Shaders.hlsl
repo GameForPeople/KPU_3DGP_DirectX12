@@ -143,27 +143,38 @@ struct VS_INSTANCING_OUTPUT
 {
     float4 position : SV_POSITION;
     float2 uv : TEXCOORD;
-    bool isGrass : GRASS;
+    int1 isGrass : GRASS;
 };
 
 VS_INSTANCING_OUTPUT VSInstancing(VS_INSTANCING_INPUT input)
 {
     VS_INSTANCING_OUTPUT output;
 
-    if (input.uv.x >= 2.0f || input.uv.y >= 2.0f)
+    //if (input.uv.x >= 2.0f || input.uv.y >= 2.0f)
+    //{
+    //    output.isGrass = true;
+    //    input.uv.x -= 2.0f;
+    //    input.uv.y -= 2.0f;
+    //}
+    if (input.instanceuv.g == 1.0f)
     {
-        output.isGrass = true;
-        input.uv.x -= 2.0f;
-        input.uv.y -= 2.0f;
+        if (input.instanceuv.r < 3000.0f)
+        {
+            output.isGrass = 2;
+        }
+        else
+        {
+            output.isGrass = 1;
+        }
     }
     else
-        output.isGrass = false;
-
-    output.position = mul(mul(mul(float4(input.position, 1.0f), input.mtxTransform),
+    {
+        output.isGrass = 0;
+    }
+        output.position = mul(mul(mul(float4(input.position, 1.0f), input.mtxTransform),
 gmtxView), gmtxProjection);
     
     output.uv = input.uv;
-
     return (output);
 }
 
@@ -171,10 +182,16 @@ float4 PSInstancing(VS_INSTANCING_OUTPUT input, uint nPrimitiveID : SV_Primitive
 {
 #ifdef NEW_CODE_9
     float4 cColor;
-    if (input.isGrass == true)
+    if (input.isGrass == 1)
         cColor = gtxtTextures[NonUniformResourceIndex((nPrimitiveID + 2) / 2)].Sample(gWrapSamplerState, input.uv);
-    else
+    else if(input.isGrass == 0)
+    {
         cColor = gtxtTextures[NonUniformResourceIndex(nPrimitiveID / 2)].Sample(gWrapSamplerState, input.uv);
+    }
+    else if (input.isGrass == 2)
+    {
+        clip(-73);
+    }
 #else
     float4 cColor = gtxtTextures[NonUniformResourceIndex(nPrimitiveID/2)].Sample(gWrapSamplerState, input.uv);
 #endif
@@ -187,9 +204,15 @@ float4 PSInstancing(VS_INSTANCING_OUTPUT input, uint nPrimitiveID : SV_Primitive
         clip(-73);
     }
     
-    if(input.isGrass)
+    if(input.isGrass == 1)
         if(cColor.r <= 0.1 && cColor.g <= 0.1 && cColor.b <= 0.1)
             clip(-73);
+
+    if(input.isGrass == 2)
+        clip(-73);
+
+   //if (!input.isGrass)
+    //    input.isGrass = true;
 
     return (cColor);
 

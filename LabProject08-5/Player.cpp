@@ -184,6 +184,21 @@ void CPlayer::Update(float fTimeElapsed)
 	if (fDeceleration > fLength) fDeceleration = fLength;
 	m_xmf3Velocity = Vector3::Add(m_xmf3Velocity, Vector3::ScalarProduct(m_xmf3Velocity, -fDeceleration, true));
 
+	if (m_xmf3Position.x < 930 && m_xmf3Position.z < 930) {
+		m_nowLevel = 1;
+	}
+	else if (m_xmf3Position.x >1120 && m_xmf3Position.z < 930) {
+		m_nowLevel = 2;
+	}
+	else if (m_xmf3Position.x < 930 && m_xmf3Position.z > 1120) {
+		m_nowLevel = 3;
+	}
+	else if (m_xmf3Position.x > 1120 && m_xmf3Position.z > 1120) {
+		m_nowLevel = 4;
+	}
+	else {
+		m_nowLevel = 5;
+	}
 	//std::cout << " xÁÂÇ¥´Â : " << m_xmf3Position.x << "  " << "zÁÂÇ¥´Â : " << m_xmf3Position.z << std::endl;
 }
 

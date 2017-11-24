@@ -343,6 +343,14 @@ void CScene::AnimateObjects(float fTimeElapsed, CCamera *pCamera)
 	}
 }
 
+void CScene::AnimateObjects(float fTimeElapsed, CCamera *pCamera, int nowLevel)
+{
+	for (int i = 0; i < m_nShaders; i++)
+	{
+		m_ppShaders[i]->AnimateObjects(fTimeElapsed, pCamera, nowLevel);
+	}
+}
+
 void CScene::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera)
 {
 	SetGraphicsRootSignature(pd3dCommandList);

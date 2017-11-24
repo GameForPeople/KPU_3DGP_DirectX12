@@ -149,6 +149,8 @@ public:
 	virtual void Animate(float fTimeElapsed);
 //	virtual void Animate(float fTimeElapsed);
 	virtual void Animate(float fTimeElapsed, CCamera *pCamera) {};
+	virtual void Animate(float fTimeElapsed, CCamera *pCamera, int nowLevel) {};
+
 
 	virtual void OnPrepareRender() { }
 	virtual void Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera=NULL);
@@ -156,6 +158,10 @@ public:
 #ifdef NEW_CODE_INSTANCING
 	virtual void Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera, UINT
 		nInstances, D3D12_VERTEX_BUFFER_VIEW d3dInstancingBufferView);
+
+	virtual void Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera, UINT
+		nInstances, D3D12_VERTEX_BUFFER_VIEW d3dInstancingBufferView, int type);
+
 #endif
 
 	virtual void BuildMaterials(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList) { }
@@ -238,6 +244,9 @@ public:
 	void SetRotatePower(int inputPower) { m_rotatePower = inputPower; }
 
 	virtual void Animate(float fTimeElapsed, CCamera *pCamera);
+	virtual void Animate(float fTimeElapsed, CCamera *pCamera, int nowLevel);
+
+	int m_nowLevel{};
 };
 #endif
 
@@ -250,7 +259,11 @@ public:
 
 public:
 	virtual void Animate(float fTimeElapsed, CCamera *pCamera);
+	virtual void Animate(float fTimeElapsed, CCamera *pCamera, int nowLevel);
+
 	virtual void SetLookAt(XMFLOAT3& xmf3Target);
+
+	int m_nowLevel{};
 };
 
 #endif
