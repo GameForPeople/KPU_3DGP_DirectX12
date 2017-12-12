@@ -250,7 +250,7 @@ void CGameObject::ReleaseShaderVariables()
 
 void CGameObject::UpdateShaderVariables(ID3D12GraphicsCommandList *pd3dCommandList)
 {
-	XMStoreFloat4x4(&m_pcbMappedGameObject->m_xmf4x4World, ::XMMatrixTranspose(XMLoadFloat4x4(&m_xmf4x4World)));
+	XMStoreFloat4x4(&m_pcbMappedGameObject->m_xmf4x4World, XMMatrixTranspose(XMLoadFloat4x4(&m_xmf4x4World)));
 	if (m_pMaterial) m_pcbMappedGameObject->m_nMaterial = m_pMaterial->m_nReflection;
 }
 
@@ -353,13 +353,13 @@ void CGameObject::SetPosition(XMFLOAT3 xmf3Position)
 
 void CGameObject::SetLocalPosition(XMFLOAT3 xmf3Position)
 {
-	XMMATRIX mtxTranslation = ::XMMatrixTranslation(xmf3Position.x, xmf3Position.y, xmf3Position.z);
+	XMMATRIX mtxTranslation = XMMatrixTranslation(xmf3Position.x, xmf3Position.y, xmf3Position.z);
 	m_xmf4x4ToParentTransform = Matrix4x4::Multiply(m_xmf4x4ToParentTransform, mtxTranslation);
 }
 
 void CGameObject::SetScale(float x, float y, float z)
 {
-	XMMATRIX mtxScale = ::XMMatrixScaling(x, y, z);
+	XMMATRIX mtxScale = XMMatrixScaling(x, y, z);
 	m_xmf4x4ToParentTransform = Matrix4x4::Multiply(mtxScale, m_xmf4x4ToParentTransform);
 }
 
@@ -413,19 +413,19 @@ void CGameObject::MoveForward(float fDistance)
 
 void CGameObject::Rotate(float fPitch, float fYaw, float fRoll)
 {
-	XMMATRIX mtxRotate = ::XMMatrixRotationRollPitchYaw(XMConvertToRadians(fPitch), XMConvertToRadians(fYaw), XMConvertToRadians(fRoll));
+	XMMATRIX mtxRotate = XMMatrixRotationRollPitchYaw(XMConvertToRadians(fPitch), XMConvertToRadians(fYaw), XMConvertToRadians(fRoll));
 	m_xmf4x4ToParentTransform = Matrix4x4::Multiply(mtxRotate, m_xmf4x4ToParentTransform);
 }
 
 void CGameObject::Rotate(XMFLOAT3 *pxmf3Axis, float fAngle)
 {
-	XMMATRIX mtxRotate = ::XMMatrixRotationAxis(XMLoadFloat3(pxmf3Axis), XMConvertToRadians(fAngle));
+	XMMATRIX mtxRotate = XMMatrixRotationAxis(XMLoadFloat3(pxmf3Axis), XMConvertToRadians(fAngle));
 	m_xmf4x4ToParentTransform = Matrix4x4::Multiply(mtxRotate, m_xmf4x4ToParentTransform);
 }
 
 void CGameObject::Rotate(XMFLOAT4 *pxmf4Quaternion)
 {
-	XMMATRIX mtxRotate = ::XMMatrixRotationQuaternion(XMLoadFloat4(pxmf4Quaternion));
+	XMMATRIX mtxRotate = XMMatrixRotationQuaternion(XMLoadFloat4(pxmf4Quaternion));
 	m_xmf4x4ToParentTransform = Matrix4x4::Multiply(mtxRotate, m_xmf4x4ToParentTransform);
 }
 
@@ -723,7 +723,7 @@ void CApacheHellicopter::Animate(float fTimeElapsed)
 {
 	if (m_pRotorFrame)
 	{
-		XMMATRIX xmmtxRotate = ::XMMatrixRotationY(XMConvertToRadians(360.0f * 3.0f) * fTimeElapsed);
+		XMMATRIX xmmtxRotate = XMMatrixRotationY(XMConvertToRadians(360.0f * 3.0f) * fTimeElapsed);
 		m_pRotorFrame->m_xmf4x4ToParentTransform = Matrix4x4::Multiply(xmmtxRotate, m_pRotorFrame->m_xmf4x4ToParentTransform);
 	}
 }
